@@ -36,12 +36,12 @@ export default function DropdownProfileMenu({ isShow, isClose, isClickLink }: Dr
             onClick={(e) => closeMenu(e)}
         >
 
-            <div className='absolute w-72 h-fit bg-[#EEEEEE] border top-16 right-12 p-5 rounded-br-md rounded-bl-md'>
-                <div className='grid place-content-end  mb-5 grid-cols-2'>
-                    <div className='text-xl font-medium'>
+            <div className='absolute min-w-fit h-fit bg-[#EEEEEE] border top-16 right-12 p-5 rounded-br-md rounded-bl-md'>
+                <div className='min-w-90 flex justify-between mb-5'>
+                    <div className='text-xl font-medium mr-3'>
                         Envir Monitor
                     </div>
-                    <div className='grid place-items-end'>
+                    <div className='grid place-items-end ml-3'>
                         <Image
                             src={"../svg/logo.svg"}
                             width={32}
@@ -51,7 +51,7 @@ export default function DropdownProfileMenu({ isShow, isClose, isClickLink }: Dr
                         />
                     </div>
                 </div>
-                <div className='px-2 grid gap-3'>
+                <div className='pl-2 pr-16 grid gap-3'>
                     <Link href={"/data_view"} onClick={() => setIsMenuOpen(false)}>
 
                         <div className='flex gap-5 place-items-center py-2 px-3 hover:bg-slate-200 hover: rounded'>

@@ -8,28 +8,31 @@ import HeadNavProfile from '../head_nav/HeadNavProfile'
 
 export default function TopNavigationDashboard() {
 
-  const {user} = useAuthContext();
+  const { user } = useAuthContext();
 
   const [isShowProfileMenu, setIsShowProfileMenu] = useState(false);
 
   return (
     <div className='sticky top-0 z-50'>
       <DropdownProfileMenu isShow={isShowProfileMenu} isClose={() => setIsShowProfileMenu(false)} isClickLink={(value) => setIsShowProfileMenu(value)} />
-      <header className='bg-navBg h-16 grid grid-cols-4 items-center '>
-        <div className='col-span-1'>
-          <HeadNavLogo />
+      <header className='bg-navBg h-16 grid grid-cols-3 '>
+        <div className='col-span-1 grid grid-cols-12 '>
+        <div className='col-span-3'></div>
+          <div className='col-span-9 grid justify-start items-center'>
+            <HeadNavLogo />
+          </div>
+          
         </div>
 
-        <div className='col-span-2'>
-
-        </div>
-
-        <div className='col-span-1'>
-          <HeadNavProfile
-            title={user ? user.email : ""}
-            isShowDropdown={isShowProfileMenu}
-            handleClick={() => setIsShowProfileMenu(!isShowProfileMenu)}
-          />
+        <div className='col-span-2 grid grid-cols-12'>
+          <div className='col-span-11 grid items-center justify-end'>
+            <HeadNavProfile
+              title={user ? user.email : ""}
+              isShowDropdown={isShowProfileMenu}
+              handleClick={() => setIsShowProfileMenu(!isShowProfileMenu)}
+            />
+          </div>
+          <div className='col-span-1'></div>
 
         </div>
 

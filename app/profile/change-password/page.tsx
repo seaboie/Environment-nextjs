@@ -53,7 +53,7 @@ export default function ChangePasswordPage() {
 
                                 <div className='text-xl'>กรุณายืนยัน อีเมล์ เพื่อเปลี่ยนรหัสผ่าน</div>
 
-                                <div className='w-[320px] h-9 border-borderTextField border-[1px] rounded-md overflow-hidden  '>
+                                <div className='flex w-[320px] h-9 border-borderTextField border-[1px] rounded-md overflow-hidden  '>
                                     <div className='w-14 h-full bg-authIconBg grid place-items-center'>
                                         <div className='w-7 h-5'>
                                             <Image
