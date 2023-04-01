@@ -1,4 +1,4 @@
-import TopNavigation from "../../components/top_nav/TopNavigation"
+import TopNav from "../../components/top_nav/TopNav"
 
 export const metadata = {
     title: 'รายละเอียดสินค้า',
@@ -9,7 +9,7 @@ export const metadata = {
 export default function ProductPage() {
     return (
         <div className="w-screen min-h-screen flex flex-col">
-            <TopNavigation />
+            <TopNav />
             <div className="flex-grow grid place-items-center">
                 <div className="text-3xl">ProductPage</div>
             </div>

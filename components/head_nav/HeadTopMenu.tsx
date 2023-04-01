@@ -1,12 +1,25 @@
-import Link from 'next/link'
+import TextNavHead from '../text/TextNavHead'
+
+export const headTopMenuDatas = [
+    {title: "Home", route: "/"},
+    {title: "Products", route: "/products"},
+    {title: "Services", route: "/services"},
+    {title: "Contact", route: "/contact"},
+]
 
 export default function HeadTopMenu() {
     return (
-        <ul className='flex text-base gap-8  items-center'>
-            <Link href={"/"}><li className='hover:text-slate-400 '>Home</li></Link>
-            <Link href={"/products"}><li className='hover:text-slate-400 '>Products</li></Link>
-            <Link href={"/services"}><li className='hover:text-slate-400 '>Services</li></Link>
-            <Link href={"/contact"}><li className='hover:text-slate-400 '>Contact</li></Link>
-        </ul>
+        
+        <div className='flex text-base gap-8'>
+            {
+            headTopMenuDatas.map((item) => (
+                <TextNavHead
+                    title={item.title}
+                    route={item.route}
+                />
+            ))
+        }
+        </div>
+
     )
 }

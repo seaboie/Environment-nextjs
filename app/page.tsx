@@ -1,17 +1,20 @@
 import React from 'react'
-import TopNavigation from '../components/top_nav/TopNavigation'
+import TopNav from '../components/top_nav/TopNav'
 import ContentTop from './ContentTop'
 import HeaderImage from './HeaderImage'
 
+export const metadata = {
+  title: 'หนัาแรก',
+  description: 'หนัาแรก',
+}
 
 export default function Home() {
 
   return (
     <div>
-      <TopNavigation />
+      <TopNav />
       <HeaderImage />
-
-     <ContentTop />
+      <ContentTop />
     </div>
   )
 }

@@ -1,6 +1,4 @@
 import Image from 'next/image'
-import { useState } from 'react';
-import DropdownProfileMenu from '../dropdown/DropdownProfileMenu';
 
 type HeadNavProfileProps = {
     title: string | null,
@@ -25,7 +23,6 @@ export default function HeadNavProfile({ title, isShowDropdown, handleClick }: H
                 {title}
             </div>
             <div className=''>
-                {/* <div onClick={() => handleClick() } onMouseEnter={() => handleClick()}> */}
                 <div className='w-5 h-5 grid place-items-center cursor-pointer' onClick={() => handleClick() }>
                     <Image
                         src={"../svg/caret.svg"}
