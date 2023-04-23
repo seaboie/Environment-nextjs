@@ -31,7 +31,7 @@ export default function DropdownProfileMenu({ isShow, isClose, isClickLink }: Dr
 
     return (
 
-        <div className='absolute w-screen h-full'
+        <div className='absolute w-screen h-screen'
             id='dropdown-profile-menu'
             onClick={(e) => closeMenu(e)}
         >
@@ -52,7 +52,7 @@ export default function DropdownProfileMenu({ isShow, isClose, isClickLink }: Dr
                     </div>
                 </div>
                 <div className='pl-2 pr-16 grid gap-3'>
-                    <Link href={"/data_view"} onClick={() => setIsMenuOpen(false)}>
+                    <Link href={"/dataList/dataLists"} onClick={() => setIsMenuOpen(false)}>
 
                         <div className='flex gap-5 place-items-center py-2 px-3 hover:bg-slate-200 hover: rounded'>
                             <div key={1}>

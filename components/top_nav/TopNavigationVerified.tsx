@@ -35,7 +35,6 @@ export default function TopNavigationVerified() {
                 </div>
 
                 <div className='col-span-1'>
-                    {/* <HeadSignInUp /> */}
 
                     {
                         mailVerified === "true"
@@ -47,14 +46,14 @@ export default function TopNavigationVerified() {
                                     <div className='cursor-pointer hover:text-slate-400'
                                         onClick={() => {
                                             setIsSignUp(true)
-                                        }}>Sign up</div>
+                                        }}>ลงทะเบียน</div>
 
                                     <div className='text-4xl font-light'>|</div>
 
                                     <div className='cursor-pointer hover:text-slate-400'
                                         onClick={() => {
                                             setIsSignIn(true)
-                                        }}>Log in</div>
+                                        }}>เข้าสู่ระบบ</div>
                                 </div>
                             )
                     }

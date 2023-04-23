@@ -6,6 +6,9 @@ export type UserType = {
     createdAt: Timestamp,
     displayName: string,
     email: string,
+    fullName: string,
+    phone: string,
+    photo: string,
     role: string
 }
 

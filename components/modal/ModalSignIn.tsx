@@ -58,7 +58,7 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
                 router.push("/profile/verified-email")
             } else {
                 sessionStorage.setItem('emailVerified', String(user.emailVerified))
-                router.push("/data_view")
+                router.push("/dataList/dataLists")
             }
 
         }

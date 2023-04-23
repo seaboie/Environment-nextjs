@@ -1,10 +1,10 @@
 import TextNavHead from '../text/TextNavHead'
 
 export const headTopMenuDatas = [
-    {title: "Home", route: "/"},
-    {title: "Products", route: "/products"},
-    {title: "Services", route: "/services"},
-    {title: "Contact", route: "/contact"},
+    {id: 1,title: "Home", route: "/"},
+    {id: 2,title: "Products", route: "/products"},
+    {id: 3,title: "Services", route: "/services"},
+    {id: 4,title: "Contact", route: "/contact"},
 ]
 
 export default function HeadTopMenu() {
@@ -13,7 +13,7 @@ export default function HeadTopMenu() {
         <div className='flex text-base gap-8'>
             {
             headTopMenuDatas.map((item) => (
-                <TextNavHead
+                <TextNavHead key={item.id}
                     title={item.title}
                     route={item.route}
                 />

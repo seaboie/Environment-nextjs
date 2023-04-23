@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.table-head {
+    @apply border border-borderTextField px-1 py-1 text-sm  bg-navBg w-24 h-12
+}
+.table-body {
+    @apply border border-borderTextField px-2 py-3 text-sm
+}
