@@ -2,9 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* TABLE */
+
 .table-head {
     @apply border border-borderTextField px-1 py-1 text-sm  bg-navBg w-24 h-12
 }
 .table-body {
     @apply border border-borderTextField px-2 py-3 text-sm
+}
+
+
+/* GRAPH */
+
+.apexcharts-legend.apx-legend-position-bottom.apexcharts-align-center, .apexcharts-legend.apx-legend-position-top.apexcharts-align-center {
+    justify-content: flex-start !important;
+    padding-left: 50px !important;
+}
+
+.apexcharts-legend-marker {
+    width: 45px !important;
+    height: 6px !important;
+    border-radius: 0 !important;
+    margin-right: 10px !important;
+}
+
+.apexcharts-legend-series {
+    margin: 40px 40px 10px !important;
+}
+
+.apexcharts-legend-text {
+    font-weight: bold !important;
+    font-size: 14px !important;
+}
+
+/* Top Tool bar : GRAPH */
+
+.apexcharts-toolbar {
+    display: none !important;
 }
