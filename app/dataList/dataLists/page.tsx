@@ -1,25 +1,33 @@
 'use client'
 
+import firebase_app from '@/firebase/config'
 import { FireApi } from '@/firebase/firestore/fireApi'
+import { FireApiDataById } from '@/firebase/firestore/fireApiDataById'
 import { Table } from '@mui/material'
-import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore'
-import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
+import { DocumentData, getFirestore, QueryDocumentSnapshot, collection, query, getDocs, orderBy, limit, where } from 'firebase/firestore'
+import { useRouter } from 'next/navigation'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import ButtonForword from '../../../components/buttonPage/ButtonForword'
 import ButtonNext from '../../../components/buttonPage/ButtonNext'
 import ButtonPrevious from '../../../components/buttonPage/ButtonPrevious'
 import ButtonRevert from '../../../components/buttonPage/ButtonRevert'
-import { ModelDevicesType } from '../../models/modelTable/modelDevices'
+import { ModelDevicesIdType, ModelDevicesType } from '../../models/modelTable/modelDevices'
 import { tableHeadDevices } from '../../models/modelTableHead/modelTableHead'
 
 export default function DataLists() {
 
-    const collection = 'devices';
-    const orderBy = 'createdAt';
-    const desc = 'desc';
-    const limited = 3;
+    const [isCheckedString, setIsCheckedString] = useState("");
 
-    const [dataResults, setDataResults] = useState<ModelDevicesType[] | null>(null);
+    const router = useRouter();
+
+    const col = 'devices';
+    const fieldDocument = 'accountId';
+    const compareFieldDocument = sessionStorage.getItem('accountId') ?? "";
+    const order = 'createdAt';
+    const des = 'desc';
+    const limited = 4;
+
+    const [dataResults, setDataResults] = useState<ModelDevicesIdType[] | null>(null);
 
     const [page, setPage] = useState(1);
 
@@ -30,40 +38,168 @@ export default function DataLists() {
     const [isNextAppear, setIsNextAppear] = useState(true);
 
     const [totalPage, setTotalPage] = useState(0);
+    const [allDocuments, setAllDocuments] = useState<number>(1);
 
-    const getTotalPage = async () => {
-        const { totalPage } = await FireApi.fetchedTotalPage(collection, limited)
-        setTotalPage(totalPage);
+    const [allowedStart, setAllowedStart] = useState("");
+    const [allowedEnd, setAllowedEnd] = useState("");
+
+    const allowedStartDate = new Date(allowedStart);
+    const allowedEndDate = new Date(allowedEnd);
+
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+
+    const deviceIdField = 'deviceId';
+    const [deviceId, setDeviceId] = useState("");
+
+    const getDateTime = async () => {
+
+        try {
+            const db = getFirestore(firebase_app);
+            const collectionRef = collection(db, 'inboxes');
+
+            const queryFirst = query(collectionRef, where(deviceIdField, '==', deviceId), orderBy('createdAt'), limit(1));
+            const docFirst = await getDocs(queryFirst);
+            const firstCreated = await docFirst.docs[0].data() as ModelDevicesType;
+
+            // Get firstTimestamp
+            const firstTimestamp = firstCreated.createdAt;
+
+            const firstDateString = firstTimestamp.toDate().toISOString().slice(0, 10);
+
+            setAllowedStart(firstDateString)
+
+            const queryLast = query(collectionRef, where(deviceIdField, '==', deviceId), orderBy('createdAt', 'desc'), limit(1));
+            const docLast = await getDocs(queryLast);
+            const lastCreated = await docLast.docs[0].data() as ModelDevicesType;
+
+            // Get lastTimestamp
+            const lastTimestamp = lastCreated.createdAt;
+
+            const lastDateString = lastTimestamp.toDate().toISOString().slice(0, 10);
+
+            setAllowedEnd(lastDateString);
+
+        } catch (error) {
+            alert(`Oops !!! เกิดปัญหาการเชื่อมต่อทางอินเตอร์เน็ต นะค่ะ`);
+        }
     }
 
-    const getData = async () => {
-        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedData<ModelDevicesType>(collection, orderBy, desc, limited);
+    // Event : start date change
+    const handleStartDateChange = (e: ChangeEvent<HTMLInputElement>) => {
+        // e.preventDefault();
 
-        if (error) {
-            alert(error)
-
-        } else {
-            setDataResults(datas);
-            setlastQuerySnapshot(lastDoc);
+        if (deviceId === "") {
+            alert("กรุณาเลือกอุปกรณ์ ก่อนนะค่ะ")
+            return;
         }
 
+        const date = e.target.value;
+        const selectedDateObj = new Date(date);
+
+
+        if (selectedDateObj.getTime() < allowedStartDate.getTime()) {
+            alert(`ข้อมูลวันที่ ในฐานข้อมูล เริ่มต้นจากวันที่ ${formatDate(allowedStart)}`);
+            setStartDate('');
+        } else if (selectedDateObj.getDate() > allowedEndDate.getDate()) {
+            alert(`ข้อมูลวันสุดท้ายที่เลือกได้ ไม่เกิน วันที่ ${formatDate(allowedEnd)}`)
+            setStartDate('');
+        } else {
+            setStartDate(date);
+
+            if (selectedDateObj > new Date(endDate)) {
+                alert('วันที่เริ่มต้น มากกว่าวันสุดท้าย ไม่ได้นะค่ะ')
+                setEndDate("");
+            }
+        }
+
+    }
+
+    // Event : end date change
+    const handleEndDateChange = (e: ChangeEvent<HTMLInputElement>) => {
+        // e.preventDefault();
+
+        if (deviceId === "") {
+            alert("กรุณาเลือกอุปกรณ์ ก่อนนะค่ะ")
+            return;
+        }
+
+        const date = e.target.value;
+        const selectedDateObj = new Date(date);
+
+        if (selectedDateObj.getTime() < allowedStartDate.getTime()) {
+            alert(`ข้อมูลวันที่ ในฐานข้อมูล เริ่มต้นจากวันที่ ${formatDate(allowedStart)} `);
+            setEndDate('');
+        } else if (selectedDateObj.getDate() > allowedEndDate.getDate()) {
+            alert(`ข้อมูลวันสุดท้ายที่เลือกได้ ไม่เกิน วันที่ ${formatDate(allowedEnd)}`)
+            setEndDate("");
+        } else {
+            setEndDate(date);
+
+            if (startDate && selectedDateObj < new Date(startDate)) {
+                alert("วันที่สิ้นสุด น้อยกว่า วันเริ่มต้น ไม่ได้ นะค่ะ");
+                setEndDate("");
+            }
+        }
+
+    }
+
+
+    // 1. Get totlal Count() for get All Page()
+    const getTotalPage = async () => {
+
+        const { count } = await FireApiDataById.fetchedTotalCountWhere<number>(col, fieldDocument, compareFieldDocument);
+
+        if (count) {
+            const totalPage = Math.ceil(count / limited);
+            setTotalPage(totalPage);
+        }
+
+    }
+
+    const db = getFirestore(firebase_app);
+
+    // 2. Get data() by limit()
+    const getDataById = async () => {
+
+        // const {datas, error, lastDoc, firstDoc} = await FireApi.fetchedData<ModelDevicesType>(col, order, des, limited);
+
+        const collectionRef = collection(db, col);
+        const q = query(collectionRef, where('accountId', '==', compareFieldDocument), orderBy(order, des), limit(limited));
+        const docSnapshot = await getDocs(q);
+
+        const firstDoc = docSnapshot.docs[0];
+        const lastDoc = docSnapshot.docs[docSnapshot.docs.length - 1];
+
+        const datas = docSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as ModelDevicesType }));
+
+
         setDataResults(datas);
+        setlastQuerySnapshot(lastDoc);
+        setFirstQuerySnapshot(firstDoc)
+
+        await getTotalPage();
+
     }
 
     const getFirstPage = async () => {
         setPage(1);
         setIsNextAppear(true);
-        await getData();
+        await getDataById();
     }
 
     const getLastPage = async () => {
         setPage(totalPage);
         setIsPreviousAppear(true)
 
-        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedLastPage<ModelDevicesType>(collection, orderBy, desc, limited, totalPage);
+        const { datas, error, firstDoc } = await FireApi.fetchedLastPage<ModelDevicesIdType>(col, order, des, limited, totalPage);
 
-        setFirstQuerySnapshot(firstDoc);
-        setDataResults(datas);
+        if (datas) {
+            setFirstQuerySnapshot(firstDoc);
+            setDataResults(datas);
+        } else {
+            alert('no data')
+        }
     }
 
     const getNextData = async () => {
@@ -74,7 +210,7 @@ export default function DataLists() {
             return;
         }
 
-        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedNextData<ModelDevicesType>(collection, orderBy, desc, limited, lastQuerySnapshot);
+        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedNextData<ModelDevicesIdType>(col, order, des, limited, lastQuerySnapshot);
 
         if (error) return;
 
@@ -93,7 +229,7 @@ export default function DataLists() {
             return;
         }
 
-        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelDevicesType>(collection, orderBy, desc, limited, firstQuerySnapshot);
+        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelDevicesIdType>(col, order, des, limited, firstQuerySnapshot);
 
         setDataResults(datas);
         setlastQuerySnapshot(lastDoc);
@@ -102,15 +238,51 @@ export default function DataLists() {
         setPage(page - 1);
     }
 
-    useEffect(() => {
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        const year = (date.getFullYear() + 543).toString();
 
-        getTotalPage();
-        getData();
+        const newDate = `${day}/${month}/${year}`;
+        return newDate;
+    }
+
+    const handleClick = async () => {
+
+        // getDateTime();
+        if (endDate !== "" && startDate !== "" && isCheckedString !== "") {
+
+            sessionStorage.setItem('startDate', startDate)
+            sessionStorage.setItem('endDate', endDate)
+            router.push(`/dataList/dataChildLists?start=${startDate}&end=${endDate}`);
+        } else {
+            alert("ไม่ได้เลือก วันที่ เริ่มต้น หรือ วันสิ้นสุด หรือ อุปกรณ์ นะค่ะ")
+        }
+
+    }
+
+    useEffect(() => {
+        getDataById();
+
+        getDateTime();
 
         return () => {
 
         }
-    }, [])
+    }, [deviceId])
+
+    const onHandleChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setEndDate("");
+        setStartDate("");
+        setIsCheckedString(e.target.value);
+
+        sessionStorage.setItem('docId', e.target.value);
+
+        setDeviceId(e.target.value);
+
+    }
+
 
 
     return (
@@ -138,8 +310,23 @@ export default function DataLists() {
 
                                 {
                                     dataResults?.map((device) => (
-                                        <tr key={device.instrument.serialNumber}>
-                                            <td className='table-body'></td>
+                                        // <tr key={device.instrument.serialNumber}>
+                                        <tr key={device.id}>
+
+                                            <td className='table-body '>
+                                                <div className='w-full h-full grid place-content-center'>
+                                                    <input
+                                                        className='w-[150%] h-[150%]'
+                                                        type="checkbox"
+                                                        name={device.id}
+                                                        value={device.id}
+                                                        checked={isCheckedString === device.id}
+                                                        id={device.id}
+                                                        onChange={onHandleChange}
+                                                    />
+                                                </div>
+                                            </td>
+
                                             <td className='table-body'>{`${device.instrument.brand} ${device.instrument.model}`}</td>
                                             <td className='table-body'>{device.instrument.serialNumber}</td>
                                             <td className='table-body'>{device.controller.boardName}</td>
@@ -177,31 +364,48 @@ export default function DataLists() {
 
                         </div>
                     </div>
-                    <div className='col-span-2 grid grid-cols-3 gap-5 my-3 justify-center'>
+                    <div className='col-span-2 grid grid-cols-3 gap-5 pt-3'>
 
-                        <div className='grid grid-cols-3 justify-center'>
-                            <div>Start date</div>
+                        <div className='grid grid-cols-3 h-10'>
+                            <div className=''>Start date</div>
                             <input
                                 className='col-span-2 border-2 px-2 py-1 rounded border-slate-300 h-8'
                                 type="date"
+                                min={allowedStart}
+                                max={allowedEnd}
                                 name="start"
-                                id="start" />
+                                id="start"
+                                value={startDate}
+                                onChange={handleStartDateChange}
+                            />
+
                         </div>
-                        <div className='grid grid-cols-3'>
-                            <div>End date</div>
+                        <div className='grid grid-cols-3 h-10'>
+                            <div className=''>End date</div>
                             <input
                                 className='col-span-2 border-2 px-2 py-1 rounded border-slate-300 h-8'
                                 type="date"
-                                name="start"
-                                id="start" />
+                                min={allowedStart}
+                                max={allowedEnd}
+                                name="end"
+                                id="end"
+                                value={endDate}
+                                onChange={handleEndDateChange}
+                            />
                         </div>
                         <div className='grid grid-cols-2'>
                             <div></div>
-                            <Link href={"/dataList/dataChildLists"}>
-                                <div className='w-full border-2 py-1 border-black hover:bg-green-800 hover:text-white rounded-lg text-center font-medium'>
-                                    <div>View</div>
-                                </div>
-                            </Link>
+
+                            <div>
+                                <div></div>
+
+                                <button
+                                    className='w-full border-2 py-1 border-black hover:bg-green-800 hover:text-white rounded-lg text-center font-medium'
+                                    onClick={() => handleClick()}
+                                >
+                                    View
+                                </button>
+                            </div>
                         </div>
 
                     </div>

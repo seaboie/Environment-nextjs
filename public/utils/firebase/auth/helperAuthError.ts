@@ -1,5 +1,5 @@
 export const helpersAuthError = {
-    authErrorCodeMessage: (authCode: string) => {
+    authErrorCodeMessage: (authCode: string | null) => {
         switch (authCode) {
             case "auth/email-already-in-use":
                 return "บัญชีผู้ใช้นี้ มีอยู่ในระบบแล้ว \n รบกวน ลงทะเบียนด้วยบัญชีใหม่ด้วยนะค่ะ"
@@ -14,7 +14,9 @@ export const helpersAuthError = {
             case "auth/too-many-requests":
                 return "เกินกำหนด จำนวนการ เชื่อมต่อฐานข้อมูล";
             case "auth/no-current-user":
-                return "ไม่พบรายชื่อผู้ใช้ ในระบบนะค่ะ"
+                return "ไม่พบรายชื่อผู้ใช้ ในระบบนะค่ะ";
+            case "auth/internal-error":
+                return "เกิดข้อผิดพลาด , รบกวนลองใหม่อีกครั้ง"
             default:
                 return "เกิดข้อผิดพลาด , รบกวนลองใหม่อีกครั้ง"
         }

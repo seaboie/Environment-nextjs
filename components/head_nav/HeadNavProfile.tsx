@@ -9,7 +9,7 @@ type HeadNavProfileProps = {
 export default function HeadNavProfile({ title, isShowDropdown, handleClick }: HeadNavProfileProps) {
 
     return (
-        <div className="flex justify-center items-center gap-3">
+        <div className="flex justify-center items-center gap-5">
             <div>
                 <Image
                     src={"../svg/profile.svg"}

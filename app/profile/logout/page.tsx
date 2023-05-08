@@ -24,9 +24,9 @@ export default function LogoutPage() {
             <TopNavigationDashboard />
             <div className="flex-grow grid place-items-center my-22">
 
-                <div className="text-3xl">ออกจากระบบ</div>
+                <div className="text-4xl">ออกจากระบบ</div>
 
-                <div>
+                <div className="w-3/6">
                     <Image
                         src={'../svg/page/logout.svg'}
                         width={300}

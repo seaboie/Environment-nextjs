@@ -1,5 +1,15 @@
 import { Timestamp } from "firebase/firestore"
 
+export type ModelDevicesIdType = {
+    id: string,
+    accountId: string,
+    active: string,
+    controller: ModelDevicesControllerType,
+    createdAt: Timestamp,
+    instrument: ModelDevicesInstrumentType,
+    updateAt: Timestamp
+}
+
 export type ModelDevicesType = {
     accountId: string,
     active: string,

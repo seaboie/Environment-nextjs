@@ -1,11 +1,14 @@
 "use client"
 
-import React, { FormEvent, FormEventHandler, useState } from 'react'
+import React, { FormEvent, useState } from 'react'
 import Image from 'next/image'
 import { FirebaseAuth } from '../../public/firebase/auth/fireAuth'
 import { useRouter } from 'next/navigation'
 import { User, sendEmailVerification, getAuth } from 'firebase/auth'
 import firebase_app from '@/firebase/config'
+import { helpersAuthError } from '../../public/utils/firebase/auth/helperAuthError'
+import { FirebaseError } from 'firebase/app'
+import AuthErrorComponent from '../auth/AuthErrorComponent'
 
 type ModalSignInProps = {
     isSignIn: boolean,
@@ -19,7 +22,9 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("")
 
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<FirebaseError | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
     const [userLogin, setUserLogin] = useState<User | null>(null);
 
     const router = useRouter();
@@ -33,13 +38,14 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
         }
     }
 
-    const handleSignIn = async(event: FormEvent<HTMLFormElement>) => {
+    const handleSignIn = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
-        const { user, err } = await FirebaseAuth.signin( email, password)
+        const { user, err } = await FirebaseAuth.signin(email, password)
 
         if (err) {
             setError(err)
+            setErrorMessage(helpersAuthError.authErrorCodeMessage(err.code))
 
             setEmail("")
             setPassword("")
@@ -51,7 +57,7 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
             return
         }
         if (user) {
-            
+
             if (user.emailVerified === false) {
                 sendEmailVerification(user)
                 sessionStorage.setItem('emailVerified', String(user.emailVerified))
@@ -62,7 +68,10 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
             }
 
         }
+    }
 
+    const handleFocus = () => {
+        setError(null);
     }
     return (
         <div className='absolute w-screen h-screen bg-black bg-opacity-40 grid place-items-center'
@@ -85,8 +94,13 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
 
                 <form onSubmit={handleSignIn}>
 
-                    <div className='grid gap-4'>
-                        <div className='w-[320px] h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex '>
+                    <div className='grid gap-4 min-w-[320px]'>
+                        {
+                            error && (
+                                <AuthErrorComponent errorMessage={errorMessage} />
+                            )
+                        }
+                        <div className=' h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex '>
                             <div className='w-14 h-full bg-authIconBg grid place-items-center'>
                                 <div className='w-7 h-5'>
                                     <Image
@@ -98,6 +112,7 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
                                     />
                                 </div>
                             </div>
+
                             <div className='w-full h-full'>
 
                                 <input
@@ -106,14 +121,15 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
                                     value={email}
                                     id='email'
                                     placeholder='Email address'
-                                    required
+                                    // required
                                     className='w-full h-full px-2'
                                     onChange={(e) => setEmail(e.target.value.trim())}
+                                    onFocus={handleFocus}
                                 />
 
                             </div>
                         </div>
-                        <div className='w-[320px] h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex'>
+                        <div className=' h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex'>
                             <div className='w-14 h-full bg-authIconBg grid place-items-center'>
                                 <div className='w-7 h-5 grid place-items-center'>
                                     <Image
@@ -134,16 +150,16 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
                                     value={password}
                                     id='password'
                                     placeholder='Password'
-                                    required
+                                    // required
                                     className='w-full h-full px-2'
                                     onChange={(e) => setPassword(e.target.value.trim())}
+                                    onFocus={handleFocus}
                                 />
 
                             </div>
                         </div>
 
-
-                        <button type='submit' className='w-[320px] h-10 bg-black hover:bg-green-900 rounded-md grid place-items-center'>
+                        <button type='submit' className=' h-10 bg-black hover:bg-green-900 rounded-md grid place-items-center'>
 
                             <div className='text-white text-lg font-medium'>LOG IN</div>
 

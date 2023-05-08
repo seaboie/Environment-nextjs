@@ -1,8 +1,6 @@
-import { InboxesType, InboxType } from "@/types/typeInboxes";
-import { getFirestore, collection, query, orderBy, OrderByDirection, limit, getDocs, QueryDocumentSnapshot, DocumentData, getCountFromServer, startAfter, endBefore, startAt, limitToLast } from "firebase/firestore";
+import { getFirestore, collection, query, orderBy, OrderByDirection, limit, getDocs, QueryDocumentSnapshot, DocumentData, getCountFromServer, startAfter, endBefore, startAt, limitToLast, where } from "firebase/firestore";
 import firebase_app from "../config";
 import { FirebaseError } from '@firebase/util';
-import { ModelDevicesType } from "../../../app/models/modelTable/modelDevices";
 
 
 const db = getFirestore(firebase_app);
@@ -40,15 +38,15 @@ export const FireApi = {
 
             const datas = documentSnapshot.docs.map((doc => ({ id: doc.id, ...doc.data() as T })));
 
-
-
             return { datas, lastDoc, firstDoc, error: null }
         } catch (error) {
 
             if (error instanceof FirebaseError && error.code === 'unavailable') {
                 // Network error occurred
+                console.log(error);
                 return { datas: null, lastDoc: null, firstDoc: null, error: { message: 'A network error occurred.', code: error.code } };
             }
+            console.log(error);
             return { datas: null, lastDoc: null, firstDoc: null, error };
 
         }
@@ -68,6 +66,7 @@ export const FireApi = {
             return { datas, lastDoc, firstDoc, error: null }
 
         } catch (error: unknown) {
+            console.log(error);
             return { datas: null, lastDoc: null, firstDoc: null, error }
         }
 
@@ -86,6 +85,7 @@ export const FireApi = {
 
             return { datas, firstDoc, lastDoc, error: null }
         } catch (error: unknown) {
+            console.log(error);
             return { datas: null, firstDoc: null, lastDoc: null, error }
         }
 
@@ -106,11 +106,11 @@ export const FireApi = {
 
             const datas: T[] = lastPageDocSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as T }));
 
-            return {datas, firstDoc, lastDoc, error: null};
+            return { datas, firstDoc, lastDoc, error: null };
         } catch (error) {
-            return {datas: null, firstDoc: null, lastDoc: null, error}
+            console.log(error);
+            return { datas: null, firstDoc: null, lastDoc: null, error }
         }
+    },
 
-
-    }
 }

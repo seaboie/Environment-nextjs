@@ -1,25 +1,40 @@
 'use client'
 
+import firebase_app from '@/firebase/config'
 import { FireApi } from '@/firebase/firestore/fireApi'
-import { DocumentData, QueryDocumentSnapshot } from '@firebase/firestore'
+import { FireApiDataChildList } from '@/firebase/firestore/fireApiDataChildList'
+import { DocumentData, QueryDocumentSnapshot, Timestamp } from '@firebase/firestore'
 import { Table } from '@mui/material'
 import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
+import React, { createRef, DetailedHTMLProps, InputHTMLAttributes, MouseEventHandler, useEffect, useRef, useState } from 'react'
 import ButtonForword from '../../../components/buttonPage/ButtonForword'
 import ButtonNext from '../../../components/buttonPage/ButtonNext'
 import ButtonPrevious from '../../../components/buttonPage/ButtonPrevious'
 import ButtonRevert from '../../../components/buttonPage/ButtonRevert'
-import { ModelInboxesType } from '../../models/modelTable/modelInboxes'
+import { ModelInboxesDataCSVType, ModelInboxesDataType, ModelInboxesType } from '../../models/modelTable/modelInboxes'
 import { tableHeadInboxes } from '../../models/modelTableHead/modelTableHead'
+
+import { CSVLink } from 'react-csv';
+
+
+
+type CustomMouseEventHandler = MouseEventHandler<HTMLInputElement> & { done: () => void };
 
 export default function DataChildLists() {
 
-  const collection = 'inboxes';
-  const orderBy = 'createdAt';
+  const csvlinkel = useRef();
+
+  const col = 'inboxes';
+  const order = 'createdAt';
   const desc = 'desc';
   const limited = 5;
 
   const [dataResults, setDataResults] = useState<ModelInboxesType[] | null>(null);
+  // const [dataCSV, setDataCSV] = useState<ModelInboxesType[] | null>(null);
+  const [dataCSV, setDataCSV] = useState<ModelInboxesDataCSVType[]>([]);
+
+  // 
+  const [isExport, setIsExport] = useState(false)
 
   const [page, setPage] = useState(1);
 
@@ -31,42 +46,52 @@ export default function DataChildLists() {
 
   const [totalPage, setTotalPage] = useState(0);
 
-  const getTotalPage = async() => {
-    const {totalPage} = await FireApi.fetchedTotalPage(collection, limited)
-      setTotalPage(totalPage);
-  }
+  const lastDate = new Date(sessionStorage.getItem('endDate') ?? "")
+  lastDate.setDate(lastDate.getDate() + 1)
+  const lastNewDate = lastDate.toISOString().slice(0, 10);
 
-  const getData = async() => {
-    const { datas, error, firstDoc, lastDoc} = await FireApi.fetchedData<ModelInboxesType>('inboxes', 'createdAt', 'desc', limited);
+  const firstTimestamp = Timestamp.fromDate(new Date(sessionStorage.getItem('startDate') ?? "")) ?? "";
+  const lastTimestamp = Timestamp.fromDate(new Date(lastNewDate));
+  const deviceId = sessionStorage.getItem('docId') ?? "";
 
-    if (error) {
-      alert(error)
-      
-    } else {
-      setDataResults(datas);
-      setlastQuerySnapshot(lastDoc);
-    }
-    
+  sessionStorage.setItem('firstTimestamp', firstTimestamp.toMillis().toString());
+  sessionStorage.setItem('lastTimestamp', lastTimestamp.toMillis().toString());
+
+
+  const getDataFilterByDate = async () => {
+
+    const { datas, error, firstDoc, lastDoc } = await FireApiDataChildList.fetchedFirstPage<ModelInboxesType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc, limited);
+
     setDataResults(datas);
+    setFirstQuerySnapshot(firstDoc);
+    setlastQuerySnapshot(lastDoc);
+    console.log(datas);
   }
 
-  const getFirstPage = async() => {
+  const getTotalPage = async () => {
+
+    const { totalPage } = await FireApiDataChildList.fetchedTotalCountByDateStartAndEnd(col, deviceId, order, firstTimestamp, lastTimestamp, limited);
+
+    setTotalPage(totalPage);
+  }
+
+  const getFirstPage = async () => {
     setPage(1);
     setIsNextAppear(true);
-    await getData();
+    await getDataFilterByDate();
   }
 
-  const getLastPage = async() => {
+  const getLastPage = async () => {
     setPage(totalPage);
     setIsPreviousAppear(true)
 
-    const {datas, error, firstDoc, lastDoc} = await FireApi.fetchedLastPage<ModelInboxesType>(collection, orderBy, desc, limited, totalPage);
+    const { datas, firstDoc, lastDoc, error } = await FireApiDataChildList.fetchedLastPage<ModelInboxesType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc, limited, totalPage);
 
     setFirstQuerySnapshot(firstDoc);
     setDataResults(datas);
   }
 
-  const getNextData = async() => {
+  const getNextData = async () => {
     setIsPreviousAppear(true);
 
     if (totalPage === page) {
@@ -74,7 +99,7 @@ export default function DataChildLists() {
       return;
     }
 
-    const {datas, error, firstDoc, lastDoc} = await FireApi.fetchedNextData<ModelInboxesType>(collection, orderBy, desc, limited, lastQuerySnapshot);
+    const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedNextData<ModelInboxesType>(col, order, desc, limited, lastQuerySnapshot);
 
     if (error) return;
 
@@ -85,7 +110,7 @@ export default function DataChildLists() {
     setPage(page + 1);
   }
 
-  const getPreviousData = async() => {
+  const getPreviousData = async () => {
     setIsNextAppear(true);
 
     if (page === 1) {
@@ -93,7 +118,7 @@ export default function DataChildLists() {
       return;
     }
 
-    const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelInboxesType>(collection, orderBy, desc, limited, firstQuerySnapshot);
+    const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelInboxesType>(col, order, desc, limited, firstQuerySnapshot);
 
     setDataResults(datas);
     setlastQuerySnapshot(lastDoc);
@@ -102,16 +127,33 @@ export default function DataChildLists() {
     setPage(page - 1);
   }
 
+  const handleExportCSV = async () => {
+
+    const { datas, error } = await FireApiDataChildList.fetchedExportCSV<ModelInboxesType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc);
+
+    // alert(JSON.stringify(datas))
+
+    const allData = datas?.map((d) => ({ 'date': new Date(d.createdAt.toDate()).toLocaleDateString('th-TH', { hour: 'numeric', minute: 'numeric', second: 'numeric' }), ...d.data })).reverse()
+
+    if (allData) {
+      setDataCSV(allData);
+    }
+
+  }
+
   useEffect(() => {
 
     getTotalPage();
-    getData();
-  
+    getDataFilterByDate();
+
+
+    handleExportCSV();
+
     return () => {
-       
+
     }
   }, [])
-  
+
 
   return (
 
@@ -130,8 +172,6 @@ export default function DataChildLists() {
                       <th key={inbox.id} className='table-head'>{inbox.title}</th>
                     ))
                   }
-
-
                 </tr>
 
               </thead>
@@ -139,8 +179,9 @@ export default function DataChildLists() {
 
                 {
                   dataResults?.map((inbox) => (
+                    // allData?.map((inbox) => (
                     <tr key={inbox.createdAt.toString()}>
-                      <td className='table-body'>{new Date(inbox.createdAt.toDate()).toLocaleDateString('th-TH', {hour: 'numeric', minute: 'numeric', second: 'numeric'})}</td>
+                      <td className='table-body'>{new Date(inbox.createdAt.toDate()).toLocaleDateString('th-TH', { hour: 'numeric', minute: 'numeric', second: 'numeric' })}</td>
                       <td className='table-body'>{inbox.data['L 5']}</td>
                       <td className='table-body'>{inbox.data.L10}</td>
                       <td className='table-body'>{inbox.data.L50}</td>
@@ -183,7 +224,7 @@ export default function DataChildLists() {
                 <div>{totalPage}</div>
               </div>
 
-              <ButtonNext isAppear={isNextAppear} onclick={() => { getNextData()}} />
+              <ButtonNext isAppear={isNextAppear} onclick={() => { getNextData() }} />
               <ButtonForword onclick={() => { getLastPage() }} />
 
             </div>
@@ -198,11 +239,19 @@ export default function DataChildLists() {
             </div>
             <div className='grid grid-cols-2'>
               <div></div>
-              <Link href={"/dataList/dataChildLists"}>
-                <div className='w-full border-2 py-1 border-black hover:bg-slate-700 hover:text-white rounded-lg text-center font-medium'>
+
+
+              <CSVLink
+                filename={`${new Date().toLocaleDateString('th-TH', { hour: 'numeric', minute: 'numeric', second: 'numeric' })}.csv`}
+                data={dataCSV?.map((d) => d) ?? ""}
+              >
+                <div
+                  onClick={() => handleExportCSV()}
+                  className='w-full border-2 py-1 border-black hover:bg-slate-700 hover:text-white rounded-lg text-center font-medium'>
                   <div>Export</div>
                 </div>
-              </Link>
+              </CSVLink>
+
             </div>
 
           </div>

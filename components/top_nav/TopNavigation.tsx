@@ -28,7 +28,7 @@ export default function TopNavigation() {
         <div className='sticky top-0 z-50'>
             <ModalSignIn isSignIn={isSignIn} isClose={() => setIsSignIn(false)} />
             <ModalSignUp isSignUp={isSignUp} isClose={() => setIsSignUp(false)} isClick={(value) => setIsSignUp(false)} />
-            <header className='bg-navBg  h-16 grid grid-cols-4 items-center'>
+            <header className='bg-navBg h-16 grid grid-cols-4 items-center'>
                 <div className='col-span-1'>
                     <HeadNavLogo />
                 </div>

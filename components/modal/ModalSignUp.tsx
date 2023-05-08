@@ -1,7 +1,10 @@
+import { FirebaseError } from 'firebase/app';
 import Image from 'next/image'
 import { useRouter } from 'next/navigation';
-import React, {  FormEvent, useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { FirebaseAuth } from '../../public/firebase/auth/fireAuth';
+import { helpersAuthError } from '../../public/utils/firebase/auth/helperAuthError';
+import AuthErrorComponent from '../auth/AuthErrorComponent';
 
 type ModalSignUpProps = {
     isSignUp: boolean,
@@ -15,8 +18,13 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [fullname, setFullname] = useState("");
+    const [company, setCompany] = useState("");
 
     const [isMenuOpen, setIsMenuOpen] = useState(true);
+
+    const [error, setError] = useState<FirebaseError | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     if (!isMenuOpen) {
         isClick(false);
@@ -32,12 +40,29 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
         }
     }
 
-    const handleSignup = async(event: FormEvent<HTMLFormElement>) => {
+    const handleSignup = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
-        const {user, err} = await FirebaseAuth.signup(email, password, () => {
-            router.push("/profile/verified-email");
-        })
+        const { user, err } = await FirebaseAuth.signup(email, password)
+
+        if (err) {
+            setError(err)
+            setErrorMessage(helpersAuthError.authErrorCodeMessage(err.code))
+
+            setEmail("")
+            setPassword("")
+            return
+        }
+
+        router.push("/profile/verified-email");
+
+        setEmail("")
+        setPassword("")
+
+    }
+
+    const handleFocus = () => {
+        setError(null);
     }
 
     return (
@@ -59,11 +84,16 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
 
                 <div className='mb-[75px] mt-6 text-xl font-medium'>Sign up</div>
 
-                <form  onSubmit={handleSignup}>
+                <form onSubmit={handleSignup}>
 
-                    <div className='grid gap-4'>
+                    <div className='grid gap-4 min-w-[320px]'>
+                        {
+                            error && (
+                                <AuthErrorComponent errorMessage={errorMessage} />
+                            )
+                        }
 
-                        <div className='w-[320px] h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex '>
+                        <div className=' h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex '>
                             <div className='w-14 h-full bg-authIconBg grid place-items-center'>
                                 <div className='w-7 h-5 grid place-items-center'>
                                     <Image
@@ -81,14 +111,16 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
                                     type="text"
                                     name='fullname'
                                     id='fullname'
+                                    value={fullname}
                                     placeholder='Full name'
                                     // required
                                     className='w-full h-full px-2'
+                                    onFocus={handleFocus}
                                 />
 
                             </div>
                         </div>
-                        <div className='w-[320px] h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex'>
+                        <div className=' h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex'>
                             <div className='w-14 h-full bg-authIconBg grid place-items-center'>
                                 <div className='w-7 h-5 grid place-items-center'>
                                     <Image
@@ -106,14 +138,16 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
                                     type="text"
                                     name='company'
                                     id='company'
+                                    value={company}
                                     placeholder='Company'
                                     // required
                                     className='w-full h-full px-2'
+                                    onFocus={handleFocus}
                                 />
 
                             </div>
                         </div>
-                        <div className='w-[320px] h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex '>
+                        <div className=' h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex '>
                             <div className='w-14 h-full bg-authIconBg grid place-items-center'>
                                 <div className='w-7 h-5'>
                                     <Image
@@ -131,15 +165,17 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
                                     type="email"
                                     name='email'
                                     id='email'
+                                    value={email}
                                     placeholder='Email address'
-                                    required
+                                    // required
                                     className='w-full h-full px-2'
                                     onChange={(e) => setEmail(e.target.value)}
+                                    onFocus={handleFocus}
                                 />
 
                             </div>
                         </div>
-                        <div className='w-[320px] h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex'>
+                        <div className=' h-9 border-borderTextField border-[1px] rounded-md overflow-hidden flex'>
                             <div className='w-14 h-full bg-authIconBg grid place-items-center'>
                                 <div className='w-7 h-5 grid place-items-center'>
                                     <Image
@@ -157,17 +193,19 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
                                     type="password"
                                     name='password'
                                     id='password'
+                                    value={password}
                                     placeholder='Password'
-                                    required
+                                    // required
                                     title="รหัสผ่าน"
                                     className='w-full h-full px-2'
                                     onChange={(e) => setPassword(e.target.value)}
+                                    onFocus={handleFocus}
                                 />
 
                             </div>
                         </div>
 
-                        <button onClick={() => {}} type='submit' className='w-[320px] h-10 bg-black hover:bg-green-900 rounded-md grid place-items-center'>
+                        <button onClick={() => { }} type='submit' className=' h-10 bg-black hover:bg-green-900 rounded-md grid place-items-center'>
                             <div className='text-white text-lg font-medium'>SIGN UP</div>
                         </button>
                     </div>

@@ -1,11 +1,10 @@
 import firebase_app from "@/firebase/config"
 import {  createUserWithEmailAndPassword, getAuth, IdTokenResult, sendEmailVerification, signInWithEmailAndPassword, signOut, User, UserCredential } from "firebase/auth"
-import { helpersAuthError } from "../../utils/firebase/auth/helperAuthError";
 
 
 
 export const FirebaseAuth = {
-    signup: async (email: string, password: string, doSomethings: () => void) => {
+    signup: async (email: string, password: string) => {
         const auth = getAuth(firebase_app);
 
         const mail = email.trim()
@@ -21,11 +20,8 @@ export const FirebaseAuth = {
                     sendEmailVerification(user)
                 })
                 .then(() => signOut(auth))
-                .then(() => doSomethings())
                 .catch (error => {
                     err = error;
-                    alert(helpersAuthError.authErrorCodeMessage(error.code))
-                    alert(error.code)
                 })
 
         } catch (error: any) {
@@ -81,7 +77,7 @@ export const FirebaseAuth = {
                 
                 .catch (error => {
                     err = error;
-                    alert(helpersAuthError.authErrorCodeMessage(error.code))
+                    // alert(err.code)
                 })
                 
         } catch (error: any) {
