@@ -51,11 +51,11 @@ export const FireApi = {
 
         }
     },
-    fetchedNextData: async <T>(col: string, order: string, des: OrderByDirection, limited: number, lastQueryDocument: QueryDocumentSnapshot<DocumentData> | null): Promise<QueryResultType<T>> => {
+    fetchedNextData: async <T>(col: string, fieldDocument: string, compareFieldDocument: string, order: string, des: OrderByDirection, limited: number, lastQueryDocument: QueryDocumentSnapshot<DocumentData> | null): Promise<QueryResultType<T>> => {
 
         try {
             const collectionRef = collection(db, col);
-            const q = query(collectionRef, orderBy(order, des), startAfter(lastQueryDocument), limit(limited));
+            const q = query(collectionRef, where(fieldDocument, '==', compareFieldDocument), orderBy(order, des), startAfter(lastQueryDocument), limit(limited));
             const documentSnapshot = await getDocs(q);
 
             const lastDoc = documentSnapshot.docs[documentSnapshot.docs.length - 1];
@@ -71,11 +71,11 @@ export const FireApi = {
         }
 
     },
-    fetchedPreviousData: async <T>(col: string, order: string, des: OrderByDirection, limited: number, firstQueryDocument: QueryDocumentSnapshot<DocumentData> | null): Promise<QueryResultType<T>> => {
+    fetchedPreviousData: async <T>(col: string, fieldDocument: string, compareFieldDocument: string, order: string, des: OrderByDirection, limited: number, firstQueryDocument: QueryDocumentSnapshot<DocumentData> | null): Promise<QueryResultType<T>> => {
 
         try {
             const collectionRef = collection(db, col);
-            const q = query(collectionRef, orderBy(order, des), endBefore(firstQueryDocument), limitToLast(limited))
+            const q = query(collectionRef, where(fieldDocument, '==', compareFieldDocument), orderBy(order, des), endBefore(firstQueryDocument), limitToLast(limited))
             const documentSnapshot = await getDocs(q);
 
             const lastDoc = documentSnapshot.docs[documentSnapshot.docs.length - 1];
@@ -90,15 +90,15 @@ export const FireApi = {
         }
 
     },
-    fetchedLastPage: async <T>(col: string, order: string, des: OrderByDirection, limited: number, totalPage: number): Promise<QueryResultType<T>> => {
+    fetchedLastPage: async <T>(col: string, fieldDocument: string, compareFieldDocument: string, order: string, des: OrderByDirection, limited: number, totalPage: number): Promise<QueryResultType<T>> => {
         const lastPageStartIndex = (totalPage - 1) * limited;
 
         try {
             const collectionRef = collection(db, col);
-            const q = query(collectionRef, orderBy(order, des));
+            const q = query(collectionRef, where(fieldDocument, '==', compareFieldDocument), orderBy(order, des));
             const docSnapshot = await getDocs(q);
 
-            const lastPageQuery = query(collectionRef, orderBy(order, des), startAt(docSnapshot.docs[lastPageStartIndex]), limit(limited));
+            const lastPageQuery = query(collectionRef, where(fieldDocument, '==', compareFieldDocument), orderBy(order, des), startAt(docSnapshot.docs[lastPageStartIndex]), limit(limited));
             const lastPageDocSnapshot = await getDocs(lastPageQuery);
 
             const firstDoc = lastPageDocSnapshot.docs[0];

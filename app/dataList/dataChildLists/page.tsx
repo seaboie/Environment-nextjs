@@ -18,20 +18,39 @@ import { CSVLink } from 'react-csv';
 
 
 
-type CustomMouseEventHandler = MouseEventHandler<HTMLInputElement> & { done: () => void };
-
 export default function DataChildLists() {
 
-  const csvlinkel = useRef();
 
   const col = 'inboxes';
-  const order = 'createdAt';
+
+  const createdField = 'createdAt';
+  const order = 'createdAt';    //
   const desc = 'desc';
-  const limited = 5;
+
+  const deviceIdField = 'deviceId';
+  const deviceId = sessionStorage.getItem('deviceId') ?? "";
+
+  const limited = 2;
+
+  
+  const [totalPage, setTotalPage] = useState(0);
 
   const [dataResults, setDataResults] = useState<ModelInboxesType[] | null>(null);
   // const [dataCSV, setDataCSV] = useState<ModelInboxesType[] | null>(null);
   const [dataCSV, setDataCSV] = useState<ModelInboxesDataCSVType[]>([]);
+
+  const [isPreviousAppear, setIsPreviousAppear] = useState(false);
+  const [isNextAppear, setIsNextAppear] = useState(true);
+
+
+
+
+
+
+  const fieldDocument = 'accountId';
+  const compareFieldDocument = sessionStorage.getItem('accountId') ?? "";
+
+  
 
   // 
   const [isExport, setIsExport] = useState(false)
@@ -41,51 +60,47 @@ export default function DataChildLists() {
   const [lastQuerySnapshot, setlastQuerySnapshot] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [firstQuerySnapshot, setFirstQuerySnapshot] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
 
-  const [isPreviousAppear, setIsPreviousAppear] = useState(false);
-  const [isNextAppear, setIsNextAppear] = useState(true);
+  
 
-  const [totalPage, setTotalPage] = useState(0);
-
+  
+  // ////////
   const lastDate = new Date(sessionStorage.getItem('endDate') ?? "")
   lastDate.setDate(lastDate.getDate() + 1)
   const lastNewDate = lastDate.toISOString().slice(0, 10);
 
   const firstTimestamp = Timestamp.fromDate(new Date(sessionStorage.getItem('startDate') ?? "")) ?? "";
   const lastTimestamp = Timestamp.fromDate(new Date(lastNewDate));
-  const deviceId = sessionStorage.getItem('docId') ?? "";
 
   sessionStorage.setItem('firstTimestamp', firstTimestamp.toMillis().toString());
   sessionStorage.setItem('lastTimestamp', lastTimestamp.toMillis().toString());
 
 
-  const getDataFilterByDate = async () => {
-
-    const { datas, error, firstDoc, lastDoc } = await FireApiDataChildList.fetchedFirstPage<ModelInboxesType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc, limited);
+  const getData = async() => {
+    const { datas, error, firstDoc, lastDoc } = await FireApiDataChildList.fetchedData<ModelInboxesType>(col, deviceIdField, deviceId, createdField, desc, limited);
 
     setDataResults(datas);
     setFirstQuerySnapshot(firstDoc);
     setlastQuerySnapshot(lastDoc);
-    console.log(datas);
   }
 
   const getTotalPage = async () => {
 
-    const { totalPage } = await FireApiDataChildList.fetchedTotalCountByDateStartAndEnd(col, deviceId, order, firstTimestamp, lastTimestamp, limited);
-
+    const {totalPage} = await FireApiDataChildList.fetchedTotalPage(col, deviceIdField, deviceId, createdField, desc, limited)
     setTotalPage(totalPage);
   }
 
   const getFirstPage = async () => {
     setPage(1);
     setIsNextAppear(true);
-    await getDataFilterByDate();
+    await getData()
   }
 
   const getLastPage = async () => {
     setPage(totalPage);
     setIsPreviousAppear(true)
 
-    const { datas, firstDoc, lastDoc, error } = await FireApiDataChildList.fetchedLastPage<ModelInboxesType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc, limited, totalPage);
+    // const { datas, firstDoc, lastDoc, error } = await FireApiDataChildList.fetchedLastPage<ModelInboxesType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc, limited, totalPage);
+    const { datas, error, firstDoc, lastDoc} = await FireApiDataChildList.fetchedLast<ModelInboxesType>(col, deviceIdField, deviceId, createdField, desc, limited, totalPage);
 
     setFirstQuerySnapshot(firstDoc);
     setDataResults(datas);
@@ -99,7 +114,8 @@ export default function DataChildLists() {
       return;
     }
 
-    const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedNextData<ModelInboxesType>(col, order, desc, limited, lastQuerySnapshot);
+    const {datas, error, lastDoc, firstDoc} = await FireApiDataChildList.fetchedNextData<ModelInboxesType>(col, deviceIdField, deviceId, createdField, desc, limited, lastQuerySnapshot)
+
 
     if (error) return;
 
@@ -118,7 +134,7 @@ export default function DataChildLists() {
       return;
     }
 
-    const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelInboxesType>(col, order, desc, limited, firstQuerySnapshot);
+    const {datas, error, firstDoc, lastDoc} = await FireApiDataChildList.fetchedPreviousData<ModelInboxesType>(col, deviceIdField, deviceId, createdField, desc, limited, firstQuerySnapshot);
 
     setDataResults(datas);
     setlastQuerySnapshot(lastDoc);
@@ -131,7 +147,6 @@ export default function DataChildLists() {
 
     const { datas, error } = await FireApiDataChildList.fetchedExportCSV<ModelInboxesType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc);
 
-    // alert(JSON.stringify(datas))
 
     const allData = datas?.map((d) => ({ 'date': new Date(d.createdAt.toDate()).toLocaleDateString('th-TH', { hour: 'numeric', minute: 'numeric', second: 'numeric' }), ...d.data })).reverse()
 
@@ -144,8 +159,8 @@ export default function DataChildLists() {
   useEffect(() => {
 
     getTotalPage();
-    getDataFilterByDate();
-
+    getData();
+   
 
     handleExportCSV();
 

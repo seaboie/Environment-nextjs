@@ -15,6 +15,7 @@ export default function LogoutPage() {
     const logout = async () => {
         await signOut(auth)
             .then(() => {
+                sessionStorage.setItem('deviceId', '');
                 sessionStorage.setItem('emailVerified', 'false');
                 router.push("/")
             })

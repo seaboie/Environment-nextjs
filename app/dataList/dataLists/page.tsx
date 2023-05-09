@@ -4,9 +4,10 @@ import firebase_app from '@/firebase/config'
 import { FireApi } from '@/firebase/firestore/fireApi'
 import { FireApiDataById } from '@/firebase/firestore/fireApiDataById'
 import { Table } from '@mui/material'
-import { DocumentData, getFirestore, QueryDocumentSnapshot, collection, query, getDocs, orderBy, limit, where } from 'firebase/firestore'
+import { log } from 'console'
+import { DocumentData, getFirestore, QueryDocumentSnapshot, collection, query, getDocs, orderBy, limit, where, doc } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
-import React, { ChangeEvent, useEffect, useState } from 'react'
+import React, { ChangeEvent, MouseEventHandler, useEffect, useState } from 'react'
 import ButtonForword from '../../../components/buttonPage/ButtonForword'
 import ButtonNext from '../../../components/buttonPage/ButtonNext'
 import ButtonPrevious from '../../../components/buttonPage/ButtonPrevious'
@@ -16,8 +17,6 @@ import { tableHeadDevices } from '../../models/modelTableHead/modelTableHead'
 
 export default function DataLists() {
 
-    const [isCheckedString, setIsCheckedString] = useState("");
-
     const router = useRouter();
 
     const col = 'devices';
@@ -25,7 +24,7 @@ export default function DataLists() {
     const compareFieldDocument = sessionStorage.getItem('accountId') ?? "";
     const order = 'createdAt';
     const des = 'desc';
-    const limited = 4;
+    const limited = 3;
 
     const [dataResults, setDataResults] = useState<ModelDevicesIdType[] | null>(null);
 
@@ -54,26 +53,27 @@ export default function DataLists() {
 
     const getDateTime = async () => {
 
+
         try {
             const db = getFirestore(firebase_app);
             const collectionRef = collection(db, 'inboxes');
 
-            const queryFirst = query(collectionRef, where(deviceIdField, '==', deviceId), orderBy('createdAt'), limit(1));
+            const queryFirst = query(collectionRef, where(deviceIdField, '==', deviceId), limit(1));
             const docFirst = await getDocs(queryFirst);
+
+            
             const firstCreated = await docFirst.docs[0].data() as ModelDevicesType;
 
-            // Get firstTimestamp
             const firstTimestamp = firstCreated.createdAt;
 
             const firstDateString = firstTimestamp.toDate().toISOString().slice(0, 10);
 
             setAllowedStart(firstDateString)
 
-            const queryLast = query(collectionRef, where(deviceIdField, '==', deviceId), orderBy('createdAt', 'desc'), limit(1));
+            const queryLast = query(collectionRef, where(deviceIdField, '==', deviceId), limit(1));
             const docLast = await getDocs(queryLast);
             const lastCreated = await docLast.docs[0].data() as ModelDevicesType;
 
-            // Get lastTimestamp
             const lastTimestamp = lastCreated.createdAt;
 
             const lastDateString = lastTimestamp.toDate().toISOString().slice(0, 10);
@@ -81,7 +81,9 @@ export default function DataLists() {
             setAllowedEnd(lastDateString);
 
         } catch (error) {
-            alert(`Oops !!! เกิดปัญหาการเชื่อมต่อทางอินเตอร์เน็ต นะค่ะ`);
+            // alert(`Oops !!! เกิดปัญหาการเชื่อมต่อทางอินเตอร์เน็ต นะค่ะ`);
+            alert(error)
+            setPage(1)
         }
     }
 
@@ -117,7 +119,6 @@ export default function DataLists() {
 
     // Event : end date change
     const handleEndDateChange = (e: ChangeEvent<HTMLInputElement>) => {
-        // e.preventDefault();
 
         if (deviceId === "") {
             alert("กรุณาเลือกอุปกรณ์ ก่อนนะค่ะ")
@@ -165,14 +166,13 @@ export default function DataLists() {
         // const {datas, error, lastDoc, firstDoc} = await FireApi.fetchedData<ModelDevicesType>(col, order, des, limited);
 
         const collectionRef = collection(db, col);
-        const q = query(collectionRef, where('accountId', '==', compareFieldDocument), orderBy(order, des), limit(limited));
+        const q = query(collectionRef, where(fieldDocument, '==', compareFieldDocument), orderBy(order, des), limit(limited));
         const docSnapshot = await getDocs(q);
 
         const firstDoc = docSnapshot.docs[0];
         const lastDoc = docSnapshot.docs[docSnapshot.docs.length - 1];
 
         const datas = docSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as ModelDevicesType }));
-
 
         setDataResults(datas);
         setlastQuerySnapshot(lastDoc);
@@ -192,7 +192,7 @@ export default function DataLists() {
         setPage(totalPage);
         setIsPreviousAppear(true)
 
-        const { datas, error, firstDoc } = await FireApi.fetchedLastPage<ModelDevicesIdType>(col, order, des, limited, totalPage);
+        const { datas, error, firstDoc } = await FireApi.fetchedLastPage<ModelDevicesIdType>(col, fieldDocument, compareFieldDocument, order, des, limited, totalPage);
 
         if (datas) {
             setFirstQuerySnapshot(firstDoc);
@@ -210,7 +210,7 @@ export default function DataLists() {
             return;
         }
 
-        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedNextData<ModelDevicesIdType>(col, order, des, limited, lastQuerySnapshot);
+        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedNextData<ModelDevicesIdType>(col, fieldDocument, compareFieldDocument, order, des, limited, lastQuerySnapshot);
 
         if (error) return;
 
@@ -229,7 +229,10 @@ export default function DataLists() {
             return;
         }
 
-        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelDevicesIdType>(col, order, des, limited, firstQuerySnapshot);
+        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelDevicesIdType>(col, fieldDocument, compareFieldDocument, order, des, limited, firstQuerySnapshot);
+
+        console.log(JSON.stringify(firstQuerySnapshot));
+        
 
         setDataResults(datas);
         setlastQuerySnapshot(lastDoc);
@@ -248,10 +251,9 @@ export default function DataLists() {
         return newDate;
     }
 
-    const handleClick = async () => {
+    const handleView = async () => {
 
-        // getDateTime();
-        if (endDate !== "" && startDate !== "" && isCheckedString !== "") {
+        if (endDate !== "" && startDate !== "" && deviceId !== "") {
 
             sessionStorage.setItem('startDate', startDate)
             sessionStorage.setItem('endDate', endDate)
@@ -265,22 +267,23 @@ export default function DataLists() {
     useEffect(() => {
         getDataById();
 
-        getDateTime();
-
-        return () => {
-
+        if (deviceId !== "") {
+            getDateTime()
+            // alert(deviceId)
         }
+
+        return () => { }
     }, [deviceId])
 
+
+
     const onHandleChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setDeviceId(e.target.value);
         setEndDate("");
         setStartDate("");
-        setIsCheckedString(e.target.value);
 
-        sessionStorage.setItem('docId', e.target.value);
-
-        setDeviceId(e.target.value);
-
+        sessionStorage.setItem('deviceId', e.target.value);
+    
     }
 
 
@@ -314,15 +317,16 @@ export default function DataLists() {
                                         <tr key={device.id}>
 
                                             <td className='table-body '>
-                                                <div className='w-full h-full grid place-content-center'>
+                                                <div className=' grid place-items-center'>
                                                     <input
-                                                        className='w-[150%] h-[150%]'
+                                                        className='w-1h-10 h-10 self-center'
                                                         type="checkbox"
                                                         name={device.id}
                                                         value={device.id}
-                                                        checked={isCheckedString === device.id}
+                                                        checked={deviceId === device.id}
                                                         id={device.id}
-                                                        onChange={onHandleChange}
+                                                        onChange={(e) => onHandleChange(e)}
+                                                        
                                                     />
                                                 </div>
                                             </td>
@@ -401,7 +405,7 @@ export default function DataLists() {
 
                                 <button
                                     className='w-full border-2 py-1 border-black hover:bg-green-800 hover:text-white rounded-lg text-center font-medium'
-                                    onClick={() => handleClick()}
+                                    onClick={() => handleView()}
                                 >
                                     View
                                 </button>
