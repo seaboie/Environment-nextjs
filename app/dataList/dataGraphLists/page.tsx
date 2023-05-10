@@ -10,7 +10,7 @@ export default function DataGrapLists() {
 
   const firstTimestamp = Timestamp.fromMillis(parseInt(sessionStorage.getItem('firstTimestamp') ?? ""));
   const lastTimestamp = Timestamp.fromMillis(parseInt(sessionStorage.getItem('lastTimestamp') ?? ""));
-  const deviceId = sessionStorage.getItem('docId') ?? ""
+  const deviceId = sessionStorage.getItem('deviceId') ?? ""
 
   const col = "inboxes";
   const order = 'createdAt';

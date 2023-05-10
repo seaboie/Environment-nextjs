@@ -1,4 +1,4 @@
-import { collection, DocumentData, endBefore, getCountFromServer, getDocs, getFirestore, limit, limitToLast, orderBy, OrderByDirection, query, QueryDocumentSnapshot, startAfter, startAt, Timestamp, where } from "firebase/firestore"
+import { collection, doc, DocumentData, DocumentSnapshot, endBefore, getCountFromServer, getDoc, getDocs, getFirestore, limit, limitToLast, orderBy, OrderByDirection, query, QueryDocumentSnapshot, startAfter, startAt, Timestamp, where } from "firebase/firestore"
 import firebase_app from "../config"
 
 interface QueryCountTotalPage {
@@ -16,6 +16,8 @@ interface QueryFireApiDataChildListData<T> {
     datas: T[] | null;
     error: unknown | null
 }
+
+
 
 const db = getFirestore(firebase_app);
 
@@ -125,6 +127,22 @@ export const FireApiDataChildList = {
         }
     },
 
+    fetchedDocById: async<T>(col: string, docId: string): Promise<T | null> => {
+        const docRef = doc(db, col, docId);
+
+        try {
+            const docSnapshot = await getDoc(docRef);
+            const docSnap = docSnapshot.data() as T
+
+            return docSnap;
+        } catch (error) {
+            alert(error)
+            console.log(error);
+            
+            return null;
+        }
+    },
+
 
 
 
@@ -215,5 +233,6 @@ export const FireApiDataChildList = {
             
             return {datas: null, error}
         }
-    }
+    }, 
+    
 }
