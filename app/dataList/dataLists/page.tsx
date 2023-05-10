@@ -4,7 +4,6 @@ import firebase_app from '@/firebase/config'
 import { FireApi } from '@/firebase/firestore/fireApi'
 import { FireApiDataById } from '@/firebase/firestore/fireApiDataById'
 import { Table } from '@mui/material'
-import { log } from 'console'
 import { DocumentData, getFirestore, QueryDocumentSnapshot, collection, query, getDocs, orderBy, limit, where, doc } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
 import React, { ChangeEvent, MouseEventHandler, useEffect, useState } from 'react'
@@ -53,13 +52,19 @@ export default function DataLists() {
 
     const getDateTime = async () => {
 
-
         try {
             const db = getFirestore(firebase_app);
             const collectionRef = collection(db, 'inboxes');
 
             const queryFirst = query(collectionRef, where(deviceIdField, '==', deviceId), limit(1));
             const docFirst = await getDocs(queryFirst);
+
+            if (docFirst.docs.length === 0) {
+                alert(`${deviceId} อุปกรณ์นี้ ไม่พบข้อมูลนะค่ะ`);
+                getFirstPage();
+
+                return;
+            }
 
             
             const firstCreated = await docFirst.docs[0].data() as ModelDevicesType;
@@ -89,7 +94,6 @@ export default function DataLists() {
 
     // Event : start date change
     const handleStartDateChange = (e: ChangeEvent<HTMLInputElement>) => {
-        // e.preventDefault();
 
         if (deviceId === "") {
             alert("กรุณาเลือกอุปกรณ์ ก่อนนะค่ะ")
@@ -163,8 +167,6 @@ export default function DataLists() {
     // 2. Get data() by limit()
     const getDataById = async () => {
 
-        // const {datas, error, lastDoc, firstDoc} = await FireApi.fetchedData<ModelDevicesType>(col, order, des, limited);
-
         const collectionRef = collection(db, col);
         const q = query(collectionRef, where(fieldDocument, '==', compareFieldDocument), orderBy(order, des), limit(limited));
         const docSnapshot = await getDocs(q);
@@ -229,10 +231,7 @@ export default function DataLists() {
             return;
         }
 
-        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelDevicesIdType>(col, fieldDocument, compareFieldDocument, order, des, limited, firstQuerySnapshot);
-
-        console.log(JSON.stringify(firstQuerySnapshot));
-        
+        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelDevicesIdType>(col, fieldDocument, compareFieldDocument, order, des, limited, firstQuerySnapshot);        
 
         setDataResults(datas);
         setlastQuerySnapshot(lastDoc);
@@ -268,8 +267,7 @@ export default function DataLists() {
         getDataById();
 
         if (deviceId !== "") {
-            getDateTime()
-            // alert(deviceId)
+           getDateTime();
         }
 
         return () => { }

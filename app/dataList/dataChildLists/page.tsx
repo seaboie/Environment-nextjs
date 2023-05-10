@@ -1,26 +1,21 @@
 'use client'
 
-import firebase_app from '@/firebase/config'
-import { FireApi } from '@/firebase/firestore/fireApi'
 import { FireApiDataChildList } from '@/firebase/firestore/fireApiDataChildList'
 import { DocumentData, QueryDocumentSnapshot, Timestamp } from '@firebase/firestore'
 import { Table } from '@mui/material'
-import Link from 'next/link'
-import React, { createRef, DetailedHTMLProps, InputHTMLAttributes, MouseEventHandler, useEffect, useRef, useState } from 'react'
+import React, {  useEffect, useState } from 'react'
 import ButtonForword from '../../../components/buttonPage/ButtonForword'
 import ButtonNext from '../../../components/buttonPage/ButtonNext'
 import ButtonPrevious from '../../../components/buttonPage/ButtonPrevious'
 import ButtonRevert from '../../../components/buttonPage/ButtonRevert'
-import { ModelInboxesDataCSVType, ModelInboxesDataType, ModelInboxesType } from '../../models/modelTable/modelInboxes'
+import { ModelInboxesDataCSVType, ModelInboxesType } from '../../models/modelTable/modelInboxes'
 import { tableHeadInboxes } from '../../models/modelTableHead/modelTableHead'
 
 import { CSVLink } from 'react-csv';
 
-
-
 export default function DataChildLists() {
 
-
+  const limited = 2;
   const col = 'inboxes';
 
   const createdField = 'createdAt';
@@ -30,40 +25,20 @@ export default function DataChildLists() {
   const deviceIdField = 'deviceId';
   const deviceId = sessionStorage.getItem('deviceId') ?? "";
 
-  const limited = 2;
-
-  
   const [totalPage, setTotalPage] = useState(0);
 
   const [dataResults, setDataResults] = useState<ModelInboxesType[] | null>(null);
-  // const [dataCSV, setDataCSV] = useState<ModelInboxesType[] | null>(null);
   const [dataCSV, setDataCSV] = useState<ModelInboxesDataCSVType[]>([]);
 
   const [isPreviousAppear, setIsPreviousAppear] = useState(false);
   const [isNextAppear, setIsNextAppear] = useState(true);
-
-
-
-
-
-
-  const fieldDocument = 'accountId';
-  const compareFieldDocument = sessionStorage.getItem('accountId') ?? "";
-
-  
-
-  // 
-  const [isExport, setIsExport] = useState(false)
 
   const [page, setPage] = useState(1);
 
   const [lastQuerySnapshot, setlastQuerySnapshot] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [firstQuerySnapshot, setFirstQuerySnapshot] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
 
-  
 
-  
-  // ////////
   const lastDate = new Date(sessionStorage.getItem('endDate') ?? "")
   lastDate.setDate(lastDate.getDate() + 1)
   const lastNewDate = lastDate.toISOString().slice(0, 10);
@@ -99,7 +74,6 @@ export default function DataChildLists() {
     setPage(totalPage);
     setIsPreviousAppear(true)
 
-    // const { datas, firstDoc, lastDoc, error } = await FireApiDataChildList.fetchedLastPage<ModelInboxesType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc, limited, totalPage);
     const { datas, error, firstDoc, lastDoc} = await FireApiDataChildList.fetchedLast<ModelInboxesType>(col, deviceIdField, deviceId, createdField, desc, limited, totalPage);
 
     setFirstQuerySnapshot(firstDoc);
@@ -115,7 +89,6 @@ export default function DataChildLists() {
     }
 
     const {datas, error, lastDoc, firstDoc} = await FireApiDataChildList.fetchedNextData<ModelInboxesType>(col, deviceIdField, deviceId, createdField, desc, limited, lastQuerySnapshot)
-
 
     if (error) return;
 
@@ -161,7 +134,6 @@ export default function DataChildLists() {
     getTotalPage();
     getData();
    
-
     handleExportCSV();
 
     return () => {

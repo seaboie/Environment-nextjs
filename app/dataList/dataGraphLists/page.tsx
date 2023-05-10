@@ -46,7 +46,6 @@ export default function DataGrapLists() {
 
   }
 
-  
   useEffect(() => {
 
     getDataFilterByDate()
@@ -59,8 +58,6 @@ export default function DataGrapLists() {
 
     }
   }, [])
-
-
 
   return (
     <div className='flex flex-col h-full'>
@@ -102,7 +99,6 @@ export default function DataGrapLists() {
 
           </div>
         </div>
-
 
         <div className='h-[10%] w-full grid grid-cols-3'></div>
       </div>

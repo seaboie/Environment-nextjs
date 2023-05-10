@@ -1,16 +1,10 @@
 'use client'
 
 import firebase_app from '@/firebase/config';
-import { FireApiDataById } from '@/firebase/firestore/fireApiDataById';
 import { AccountType } from '@/types/typeAccount';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import Link from 'next/link'
-import React, { ReactNode, Suspense, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
-// export const metadata = {
-//     title: "รายละเอียด ข้อมูล บริษัทต่างๆ",
-//     description: "รายละเอียด ข้อมูล บริษัทต่างๆ "
-// }
 
 type DataListsLayoutProps = {
     children: React.ReactNode,
@@ -26,7 +20,6 @@ export default function DataListsLayout({ children }: DataListsLayoutProps) {
     const [data, setData] = useState<AccountType | null>(null);
 
     const getDataCompanyById = async () => {
-        // const docRef =  doc(db, col, 'xrKm4SAT6etFj0KEnBOm' ?? "");
         const docRef =  doc(db, col, companyAccountId);
         const docSnapshot = await getDoc(docRef);
 
