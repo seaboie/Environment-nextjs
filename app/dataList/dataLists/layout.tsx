@@ -1,7 +1,10 @@
 'use client'
 
+import { useAuthContext } from '@/context/AuthContext';
 import firebase_app from '@/firebase/config';
+import { FireApiDataById } from '@/firebase/firestore/fireApiDataById';
 import { AccountType } from '@/types/typeAccount';
+import { UserType } from '@/types/typeUser';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react'
 
@@ -14,10 +17,21 @@ const db = getFirestore(firebase_app);
 
 export default function DataListsLayout({ children }: DataListsLayoutProps) {
 
+    const { user } = useAuthContext();
+    const collection = "users";
+
     const col = "accounts";
-    const companyAccountId = sessionStorage.getItem('accountId') ?? "";
+    // const companyAccountId = sessionStorage.getItem('accountId') ?? "";
 
     const [data, setData] = useState<AccountType | null>(null);
+    const [companyAccountId, setCompanyAccountId] = useState("");
+
+    const getUser = async() => {
+        const { dataById } = await FireApiDataById.fetchDataById<UserType>(collection, user?.uid ?? "");
+        // sessionStorage.setItem('accountId', dataById.accountId);
+        setCompanyAccountId(dataById.accountId);
+        
+    }
 
     const getDataCompanyById = async () => {
         const docRef =  doc(db, col, companyAccountId);
@@ -26,14 +40,19 @@ export default function DataListsLayout({ children }: DataListsLayoutProps) {
         const d = docSnapshot.data() as AccountType;
 
         setData(d)
-    }
+    }   
 
     useEffect(() => {
 
-        getDataCompanyById();
+        getUser();
+        if (companyAccountId) {
+            getDataCompanyById();
+            
+        }
+
 
         return () => { }
-    }, [])
+    }, [companyAccountId])
 
     return (
         <div className=' h-full flex flex-col'>

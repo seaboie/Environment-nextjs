@@ -13,6 +13,8 @@ import ButtonPrevious from '../../../components/buttonPage/ButtonPrevious'
 import ButtonRevert from '../../../components/buttonPage/ButtonRevert'
 import { ModelDevicesIdType, ModelDevicesType } from '../../models/modelTable/modelDevices'
 import { tableHeadDevices } from '../../models/modelTableHead/modelTableHead'
+import { useAuthContext } from '@/context/AuthContext'
+import { UserType } from '@/types/typeUser'
 
 export default function DataLists() {
 
@@ -20,7 +22,6 @@ export default function DataLists() {
 
     const col = 'devices';
     const fieldDocument = 'accountId';
-    const compareFieldDocument = sessionStorage.getItem('accountId') ?? "";
     const order = 'createdAt';
     const des = 'desc';
     const limited = 3;
@@ -50,6 +51,17 @@ export default function DataLists() {
     const deviceIdField = 'deviceId';
     const [deviceId, setDeviceId] = useState("");
 
+    const [compareFieldDocument, setCompareFieldDocument] = useState("");
+
+    const { user } = useAuthContext();
+    const colUsers = "users";
+
+    const getCompanyId = async() => {
+        const { dataById } = await FireApiDataById.fetchDataById<UserType>(colUsers, user?.uid ?? "");
+        setCompareFieldDocument(dataById.accountId);
+        sessionStorage.setItem('accountId', compareFieldDocument);
+    }
+
     const getDateTime = async () => {
 
         try {
@@ -66,7 +78,7 @@ export default function DataLists() {
                 return;
             }
 
-            
+
             const firstCreated = await docFirst.docs[0].data() as ModelDevicesType;
 
             const firstTimestamp = firstCreated.createdAt;
@@ -231,7 +243,7 @@ export default function DataLists() {
             return;
         }
 
-        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelDevicesIdType>(col, fieldDocument, compareFieldDocument, order, des, limited, firstQuerySnapshot);        
+        const { datas, error, firstDoc, lastDoc } = await FireApi.fetchedPreviousData<ModelDevicesIdType>(col, fieldDocument, compareFieldDocument, order, des, limited, firstQuerySnapshot);
 
         setDataResults(datas);
         setlastQuerySnapshot(lastDoc);
@@ -264,14 +276,18 @@ export default function DataLists() {
     }
 
     useEffect(() => {
-        getDataById();
+        getCompanyId();
 
-        if (deviceId !== "") {
-           getDateTime();
+        if (compareFieldDocument) {
+            getDataById();
+
+            if (deviceId !== "") {
+                getDateTime();
+            }
         }
 
         return () => { }
-    }, [deviceId])
+    }, [ compareFieldDocument, deviceId])
 
 
 
@@ -281,7 +297,7 @@ export default function DataLists() {
         setStartDate("");
 
         sessionStorage.setItem('deviceId', e.target.value);
-    
+
     }
 
 
@@ -324,7 +340,7 @@ export default function DataLists() {
                                                         checked={deviceId === device.id}
                                                         id={device.id}
                                                         onChange={(e) => onHandleChange(e)}
-                                                        
+
                                                     />
                                                 </div>
                                             </td>
