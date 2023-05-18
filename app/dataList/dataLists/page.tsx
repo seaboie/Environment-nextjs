@@ -24,7 +24,7 @@ export default function DataLists() {
     const fieldDocument = 'accountId';
     const order = 'createdAt';
     const des = 'desc';
-    const limited = 3;
+    const limited = 2;
 
     const [dataResults, setDataResults] = useState<ModelDevicesIdType[] | null>(null);
 
@@ -56,7 +56,7 @@ export default function DataLists() {
     const { user } = useAuthContext();
     const colUsers = "users";
 
-    const getCompanyId = async() => {
+    const getCompanyId = async () => {
         const { dataById } = await FireApiDataById.fetchDataById<UserType>(colUsers, user?.uid ?? "");
         setCompareFieldDocument(dataById.accountId);
         sessionStorage.setItem('accountId', compareFieldDocument);
@@ -73,7 +73,10 @@ export default function DataLists() {
 
             if (docFirst.docs.length === 0) {
                 alert(`${deviceId} อุปกรณ์นี้ ไม่พบข้อมูลนะค่ะ`);
-                getFirstPage();
+                // getFirstPage();
+                setDataResults(dataResults)
+                setFirstQuerySnapshot(firstQuerySnapshot)
+                setlastQuerySnapshot(lastQuerySnapshot)
 
                 return;
             }
@@ -96,6 +99,10 @@ export default function DataLists() {
             const lastDateString = lastTimestamp.toDate().toISOString().slice(0, 10);
 
             setAllowedEnd(lastDateString);
+
+            setDataResults(dataResults)
+            setFirstQuerySnapshot(firstQuerySnapshot)
+            setlastQuerySnapshot(lastQuerySnapshot)
 
         } catch (error) {
             // alert(`Oops !!! เกิดปัญหาการเชื่อมต่อทางอินเตอร์เน็ต นะค่ะ`);
@@ -217,6 +224,7 @@ export default function DataLists() {
     }
 
     const getNextData = async () => {
+
         setIsPreviousAppear(true);
 
         if (totalPage === page) {
@@ -236,6 +244,7 @@ export default function DataLists() {
     }
 
     const getPreviousData = async () => {
+
         setIsNextAppear(true);
 
         if (page === 1) {
@@ -283,15 +292,15 @@ export default function DataLists() {
 
             if (deviceId !== "") {
                 getDateTime();
+
             }
         }
 
         return () => { }
-    }, [ compareFieldDocument, deviceId])
-
-
+    }, [compareFieldDocument, deviceId])
 
     const onHandleChange = (e: ChangeEvent<HTMLInputElement>) => {
+
         setDeviceId(e.target.value);
         setEndDate("");
         setStartDate("");
@@ -299,7 +308,6 @@ export default function DataLists() {
         sessionStorage.setItem('deviceId', e.target.value);
 
     }
-
 
 
     return (
