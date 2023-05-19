@@ -74,9 +74,9 @@ export default function DataLists() {
             if (docFirst.docs.length === 0) {
                 alert(`${deviceId} อุปกรณ์นี้ ไม่พบข้อมูลนะค่ะ`);
                 // getFirstPage();
-                setDataResults(dataResults)
-                setFirstQuerySnapshot(firstQuerySnapshot)
-                setlastQuerySnapshot(lastQuerySnapshot)
+                // setDataResults(dataResults)
+                // setFirstQuerySnapshot(firstQuerySnapshot)
+                // setlastQuerySnapshot(lastQuerySnapshot)
 
                 return;
             }
@@ -100,9 +100,9 @@ export default function DataLists() {
 
             setAllowedEnd(lastDateString);
 
-            setDataResults(dataResults)
-            setFirstQuerySnapshot(firstQuerySnapshot)
-            setlastQuerySnapshot(lastQuerySnapshot)
+            // setDataResults(dataResults)
+            // setFirstQuerySnapshot(firstQuerySnapshot)
+            // setlastQuerySnapshot(lastQuerySnapshot)
 
         } catch (error) {
             // alert(`Oops !!! เกิดปัญหาการเชื่อมต่อทางอินเตอร์เน็ต นะค่ะ`);
@@ -290,14 +290,20 @@ export default function DataLists() {
         if (compareFieldDocument) {
             getDataById();
 
-            if (deviceId !== "") {
-                getDateTime();
+            // if (deviceId !== "") {
+            //     getDateTime();
 
-            }
+            // }
         }
 
         return () => { }
-    }, [compareFieldDocument, deviceId])
+    }, [compareFieldDocument])
+
+    useEffect(() => {
+        if (deviceId !== "") {
+          getDateTime();
+        }
+      }, [deviceId]);
 
     const onHandleChange = (e: ChangeEvent<HTMLInputElement>) => {
 
