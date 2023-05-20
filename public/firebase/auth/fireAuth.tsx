@@ -1,34 +1,39 @@
 import firebase_app from "@/firebase/config"
 import {  createUserWithEmailAndPassword, getAuth, IdTokenResult, sendEmailVerification, signInWithEmailAndPassword, signOut, User, UserCredential } from "firebase/auth"
 
-
+type FirebaseAuthProp = {
+    user: User | null,
+    err: any | null
+}
 
 export const FirebaseAuth = {
-    signup: async (email: string, password: string) => {
+    signup: async (email: string, password: string): Promise<FirebaseAuthProp> => {
         const auth = getAuth(firebase_app);
 
         const mail = email.trim()
         const pass = password.trim()
 
         let user: User | null = null;
-        let err: any = null;
+        let err: any | null = null;
 
         try {
             await createUserWithEmailAndPassword(auth, mail, pass)
                 .then((userCredential) => {
                     user = userCredential.user;
                     sendEmailVerification(user)
+
+                    return {user, err}
                 })
                 .then(() => signOut(auth))
-                .catch (error => {
-                    err = error;
-                })
+                
+               
 
         } catch (error: any) {
             alert(error)
+            return { user, err }
         }
 
-        return { user, err }
+        return {user, err}
     },
     signin: async (email: string, password: string) => {
 

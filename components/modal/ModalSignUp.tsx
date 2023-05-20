@@ -1,4 +1,7 @@
+import firebase_app from '@/firebase/config';
+import { UserType } from '@/types/typeUser';
 import { FirebaseError } from 'firebase/app';
+import { doc, getFirestore, setDoc, Timestamp } from 'firebase/firestore';
 import Image from 'next/image'
 import { useRouter } from 'next/navigation';
 import React, { FormEvent, useState } from 'react';
@@ -11,6 +14,8 @@ type ModalSignUpProps = {
     isClose(): void,
     isClick(value: boolean): void
 }
+
+const db = getFirestore(firebase_app);
 
 export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpProps) {
 
@@ -40,6 +45,13 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
         }
     }
 
+    const clearField = () => {
+        setEmail("")
+        setPassword("")
+        setFullname("")
+        setCompany("")
+    }
+
     const handleSignup = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
@@ -49,15 +61,35 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
             setError(err)
             setErrorMessage(helpersAuthError.authErrorCodeMessage(err.code))
 
-            setEmail("")
-            setPassword("")
+            clearField()
             return
+        }
+
+        const docData: UserType = {
+            accountId: "xrKm4SAT6etFj0KEnBOm",
+            active: true,
+            createdAt: Timestamp.fromDate(new Date(user?.metadata.creationTime ?? "")),
+            displayName: fullname,
+            email: email,
+            fullName: fullname,
+            phone: "",
+            photo: "",
+            role: "guest"
+        }
+
+        if (user) {
+            const userRef = doc(db, 'users', user.uid);
+
+            await setDoc(userRef, docData)
+                .catch((error) => {
+                    alert(helpersAuthError.authErrorCodeMessage(error.code))
+                })
+
         }
 
         router.push("/profile/verified-email");
 
-        setEmail("")
-        setPassword("")
+        clearField()
 
     }
 
@@ -116,6 +148,7 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
                                     // required
                                     className='w-full h-full px-2'
                                     onFocus={handleFocus}
+                                    onChange={(e) => setFullname(e.target.value)}
                                 />
 
                             </div>
@@ -143,6 +176,7 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
                                     // required
                                     className='w-full h-full px-2'
                                     onFocus={handleFocus}
+                                    onChange={(e) => setCompany(e.target.value)}
                                 />
 
                             </div>
@@ -171,6 +205,7 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
                                     className='w-full h-full px-2'
                                     onChange={(e) => setEmail(e.target.value)}
                                     onFocus={handleFocus}
+
                                 />
 
                             </div>
