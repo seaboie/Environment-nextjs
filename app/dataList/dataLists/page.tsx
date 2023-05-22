@@ -4,7 +4,7 @@ import firebase_app from '@/firebase/config'
 import { FireApi } from '@/firebase/firestore/fireApi'
 import { FireApiDataById } from '@/firebase/firestore/fireApiDataById'
 import { Table } from '@mui/material'
-import { DocumentData, getFirestore, QueryDocumentSnapshot, collection, query, getDocs, orderBy, limit, where, doc } from 'firebase/firestore'
+import { DocumentData, getFirestore, QueryDocumentSnapshot, collection, query, getDocs, orderBy, limit, where, doc, getDoc } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
 import React, { ChangeEvent, MouseEventHandler, useEffect, useState } from 'react'
 import ButtonForword from '../../../components/buttonPage/ButtonForword'
@@ -15,6 +15,7 @@ import { ModelDevicesIdType, ModelDevicesType } from '../../models/modelTable/mo
 import { tableHeadDevices } from '../../models/modelTableHead/modelTableHead'
 import { useAuthContext } from '@/context/AuthContext'
 import { UserType } from '@/types/typeUser'
+import { AccountType } from '@/types/typeAccount'
 
 export default function DataLists() {
 
@@ -56,6 +57,25 @@ export default function DataLists() {
     const { user } = useAuthContext();
     const colUsers = "users";
 
+    const [placeCompany, setPlaceCompany] = useState<AccountType | null>(null);
+    const accountId = dataResults !== null ? dataResults[0].accountId : "";
+    const colAccounts = "accounts";
+
+    const getAddressForDescriptionField = async() => {
+        const db = getFirestore(firebase_app);
+        const docRef = doc(db, colAccounts, accountId);
+        const docSnapshot = await getDoc(docRef);
+
+        if (docSnapshot.exists()) {
+            const place = docSnapshot.data() as AccountType;
+
+            setPlaceCompany(place);
+        } else {
+            alert("ไม่พบสถานที่ นะค่ะ")
+        }
+        
+    }
+
     const getCompanyId = async () => {
         const { dataById } = await FireApiDataById.fetchDataById<UserType>(colUsers, user?.uid ?? "");
         setCompareFieldDocument(dataById.accountId);
@@ -73,14 +93,9 @@ export default function DataLists() {
 
             if (docFirst.docs.length === 0) {
                 alert(`${deviceId} อุปกรณ์นี้ ไม่พบข้อมูลนะค่ะ`);
-                // getFirstPage();
-                // setDataResults(dataResults)
-                // setFirstQuerySnapshot(firstQuerySnapshot)
-                // setlastQuerySnapshot(lastQuerySnapshot)
 
                 return;
             }
-
 
             const firstCreated = await docFirst.docs[0].data() as ModelDevicesType;
 
@@ -100,12 +115,7 @@ export default function DataLists() {
 
             setAllowedEnd(lastDateString);
 
-            // setDataResults(dataResults)
-            // setFirstQuerySnapshot(firstQuerySnapshot)
-            // setlastQuerySnapshot(lastQuerySnapshot)
-
         } catch (error) {
-            // alert(`Oops !!! เกิดปัญหาการเชื่อมต่อทางอินเตอร์เน็ต นะค่ะ`);
             alert(error)
             setPage(1)
         }
@@ -290,14 +300,19 @@ export default function DataLists() {
         if (compareFieldDocument) {
             getDataById();
 
-            // if (deviceId !== "") {
-            //     getDateTime();
-
-            // }
         }
 
         return () => { }
     }, [compareFieldDocument])
+
+    useEffect(() => {
+             
+        if (accountId) {
+            getAddressForDescriptionField();
+        }
+          
+            return () => {}
+      }, [accountId])
 
     useEffect(() => {
         if (deviceId !== "") {
@@ -363,7 +378,7 @@ export default function DataLists() {
                                             <td className='table-body'>{device.instrument.serialNumber}</td>
                                             <td className='table-body'>{device.controller.boardName}</td>
                                             <td className='table-body'>{device.controller.imei}</td>
-                                            <td className='table-body'>{device.accountId}</td>
+                                            <td className='table-body'>{placeCompany?.place.address}</td>
                                         </tr>
                                     ))
                                 }

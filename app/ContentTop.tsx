@@ -47,7 +47,7 @@ export default function ContentTop() {
                             <div className='my-12'>
                                 {
                                     data.map(d => (
-                                        <div className='my-10'> Email : {d}</div>
+                                        <div key={d} className='my-10'> Email : {d}</div>
                                     ))
                                 }
                             </div>

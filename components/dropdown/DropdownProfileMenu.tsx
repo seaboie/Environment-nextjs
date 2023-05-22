@@ -1,5 +1,8 @@
+import firebase_app from '@/firebase/config'
+import { getAuth, signOut } from 'firebase/auth'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 type DropdownProfileMenuProps = {
@@ -26,8 +29,24 @@ export default function DropdownProfileMenu({ isShow, isClose, isClickLink }: Dr
         }
     }
 
-    console.log("Hey" , isShow);
-    
+
+    const router = useRouter();
+
+    const auth = getAuth(firebase_app);
+
+    const logout = async () => {
+
+        setIsMenuOpen(false);
+
+        await signOut(auth)
+            .then(() => {
+                sessionStorage.setItem('deviceId', '');
+                sessionStorage.setItem('emailVerified', 'false');
+                router.push("/")
+            })
+    }
+
+
 
     return (
 
@@ -102,7 +121,8 @@ export default function DropdownProfileMenu({ isShow, isClose, isClickLink }: Dr
                         </div>
 
                     </Link>
-                    <Link href={"/profile/logout"} onClick={() => setIsMenuOpen(false)}>
+
+                    <div className='hover:cursor-pointer' onClick={() => logout()}>
                         <div className='flex gap-5 place-items-center py-2 px-3 hover:bg-slate-200 hover:rounded'>
                             <div key={3}>
                                 <Image
@@ -116,7 +136,7 @@ export default function DropdownProfileMenu({ isShow, isClose, isClickLink }: Dr
                             <div className='text-zinc-500'>ออกจากระบบ</div>
 
                         </div>
-                    </Link>
+                    </div>
 
                 </div>
             </div>

@@ -16,7 +16,13 @@ export const helpersAuthError = {
             case "auth/no-current-user":
                 return "ไม่พบรายชื่อผู้ใช้ ในระบบนะค่ะ";
             case "auth/internal-error":
-                return "เกิดข้อผิดพลาด , รบกวนลองใหม่อีกครั้ง"
+                return "เกิดข้อผิดพลาด , รบกวนลองใหม่อีกครั้ง";
+            case "auth/missing-password":
+                return "ท่านไม่ได้กรอก รหัสผ่านเข้ามานะค่ะ"
+            case "not-username":
+                return "ท่านไม่ได้กรอก ชื่อผู้ใช้ เข้ามานะค่ะ";
+            case "not-company":
+                return "ท่านไม่ได้กรอก รายชื่อบริษัท เข้ามานะค่ะ";
             default:
                 return "เกิดข้อผิดพลาด , รบกวนลองใหม่อีกครั้ง"
         }

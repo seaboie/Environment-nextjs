@@ -45,7 +45,7 @@ export default function TopNavigationDashboard() {
         <div className='col-span-1 grid grid-cols-12'>
           <div className='col-span-10 grid items-center justify-end'>
             <HeadNavProfile
-              title={getUser ? getUser?.displayName ?? "ant" : ""}
+              title={getUser ? getUser?.displayName : ""}
               isShowDropdown={isShowProfileMenu}
               handleClick={() => setIsShowProfileMenu(!isShowProfileMenu)}
             />

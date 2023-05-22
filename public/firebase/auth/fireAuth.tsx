@@ -25,11 +25,13 @@ export const FirebaseAuth = {
                     return {user, err}
                 })
                 .then(() => signOut(auth))
+                .catch (error => {
+                    err = error;
+                    // alert(err.code)
+                })
                 
-               
-
         } catch (error: any) {
-            alert(error)
+            // alert(error)
             return { user, err }
         }
 

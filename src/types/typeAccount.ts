@@ -4,5 +4,11 @@ export type AccountType = {
     active: boolean,
     company: string,
     createdAt: Timestamp,
-    customerCode: string
+    customerCode: string,
+    
+    place: PlaceAddress,
+}
+
+export type PlaceAddress = {
+    address: string
 }

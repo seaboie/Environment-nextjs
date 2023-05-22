@@ -59,6 +59,13 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
 
         if (err) {
             setError(err)
+
+            if (fullname === "") {
+                err.code = 'not-username'
+            }
+            if (company === "") {
+                err.code = 'not-company'
+            }
             setErrorMessage(helpersAuthError.authErrorCodeMessage(err.code))
 
             clearField()

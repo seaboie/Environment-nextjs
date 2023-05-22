@@ -58,14 +58,16 @@ export default function ModalSignIn({ isSignIn, isClose }: ModalSignInProps) {
         }
         if (user) {
 
-            if (user.emailVerified === false) {
-                sendEmailVerification(user)
-                sessionStorage.setItem('emailVerified', String(user.emailVerified))
-                router.push("/profile/verified-email")
-            } else {
-                sessionStorage.setItem('emailVerified', String(user.emailVerified))
-                router.push("/dataList/dataLists")
-            }
+            // if (user.emailVerified === false) {
+            //     sendEmailVerification(user)
+            //     sessionStorage.setItem('emailVerified', String(user.emailVerified))
+            //     router.push("/profile/verified-email")
+            // } else {
+            //     sessionStorage.setItem('emailVerified', String(user.emailVerified))
+            //     router.push("/dataList/dataLists")
+            // }
+            sessionStorage.setItem('emailVerified', String(user.emailVerified))
+            router.push("/dataList/dataLists")
 
         }
     }
