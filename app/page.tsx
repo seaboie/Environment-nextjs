@@ -14,7 +14,7 @@ export default function Home() {
     <div>
       <TopNav />
       <HeaderImage />
-      <ContentTop />
+      {/* <ContentTop /> */}
     </div>
   )
 }

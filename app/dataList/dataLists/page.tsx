@@ -16,6 +16,8 @@ import { tableHeadDevices } from '../../models/modelTableHead/modelTableHead'
 import { useAuthContext } from '@/context/AuthContext'
 import { UserType } from '@/types/typeUser'
 import { AccountType } from '@/types/typeAccount'
+import { InboxesDataType, InboxesType } from '@/types/typeInboxes'
+import { ModelInboxesType } from '../../models/modelTable/modelInboxes'
 
 export default function DataLists() {
 
@@ -25,7 +27,7 @@ export default function DataLists() {
     const fieldDocument = 'accountId';
     const order = 'createdAt';
     const des = 'desc';
-    const limited = 2;
+    const limited = 7;
 
     const [dataResults, setDataResults] = useState<ModelDevicesIdType[] | null>(null);
 
@@ -61,7 +63,7 @@ export default function DataLists() {
     const accountId = dataResults !== null ? dataResults[0].accountId : "";
     const colAccounts = "accounts";
 
-    const getAddressForDescriptionField = async() => {
+    const getAddressForDescriptionField = async () => {
         const db = getFirestore(firebase_app);
         const docRef = doc(db, colAccounts, accountId);
         const docSnapshot = await getDoc(docRef);
@@ -73,7 +75,7 @@ export default function DataLists() {
         } else {
             alert("ไม่พบสถานที่ นะค่ะ")
         }
-        
+
     }
 
     const getCompanyId = async () => {
@@ -193,6 +195,44 @@ export default function DataLists() {
 
     const db = getFirestore(firebase_app);
 
+    // 
+
+
+
+    // 2.
+    const getDataFromDeviceId = async () => {
+        const collectionDevicesRef = collection(db, "devices");
+        const queryDevices = query(collectionDevicesRef, where(fieldDocument, '==', compareFieldDocument), limit(limited));
+        const docDevicesSnapshot = await getDocs(queryDevices);
+
+        let matchingDevices = docDevicesSnapshot.docs.map((deviceDoc) => ({ id: deviceDoc.id, ...deviceDoc.data() as ModelDevicesType }))
+        const deviceIds = matchingDevices.map((device) => device.id)
+
+        // Check inboxes collection for matching deviceId
+        const collectionInboxesRef = collection(db, "inboxes");
+        const queryInboxes = query(collectionInboxesRef, where("deviceId", "in", deviceIds));
+        const docInboxesSnapshot = await getDocs(queryInboxes);
+
+        const matchingInboxes = docInboxesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() as ModelInboxesType }))
+        const inboxesIds = matchingInboxes.map((device) => device.deviceId)
+
+        const filterIds = deviceIds.filter((e) => inboxesIds.includes(e));
+
+        const documentPromises = filterIds.map(async (id) => {
+            let docRef = doc(db, 'devices', id);
+            let docSnap = await getDoc(docRef);
+            return { id: docSnap.id, ...docSnap.data() as ModelDevicesType }
+        })
+
+        const documents = await Promise.all(documentPromises)
+
+
+        setDataResults(documents);
+
+    }
+
+
+
     // 2. Get data() by limit()
     const getDataById = async () => {
 
@@ -203,7 +243,7 @@ export default function DataLists() {
         const firstDoc = docSnapshot.docs[0];
         const lastDoc = docSnapshot.docs[docSnapshot.docs.length - 1];
 
-        const datas = docSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as ModelDevicesType }));
+        let datas = docSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as ModelDevicesType }));
 
         setDataResults(datas);
         setlastQuerySnapshot(lastDoc);
@@ -216,12 +256,23 @@ export default function DataLists() {
     const getFirstPage = async () => {
         setPage(1);
         setIsNextAppear(true);
+
+        if (page === 1) {
+            setIsPreviousAppear(false);
+            return;
+        }
+
         await getDataById();
     }
 
     const getLastPage = async () => {
         setPage(totalPage);
         setIsPreviousAppear(true)
+
+        if (totalPage === page) {
+            setIsNextAppear(false);
+            return;
+        }
 
         const { datas, error, firstDoc } = await FireApi.fetchedLastPage<ModelDevicesIdType>(col, fieldDocument, compareFieldDocument, order, des, limited, totalPage);
 
@@ -280,6 +331,14 @@ export default function DataLists() {
         const newDate = `${day}/${month}/${year}`;
         return newDate;
     }
+    const formatDateDefault = (currentDate: Date) => {
+        var year = currentDate.getFullYear();
+        var month = ("0" + (currentDate.getMonth() + 1)).slice(-2);
+        var day = ("0" + currentDate.getDate()).slice(-2);
+        var formattedDate = year + "-" + month + "-" + day;
+
+        return formattedDate;
+    }
 
     const handleView = async () => {
 
@@ -295,10 +354,13 @@ export default function DataLists() {
     }
 
     useEffect(() => {
+
         getCompanyId();
 
         if (compareFieldDocument) {
-            getDataById();
+            // getDataById();
+
+            getDataFromDeviceId()
 
         }
 
@@ -306,19 +368,19 @@ export default function DataLists() {
     }, [compareFieldDocument])
 
     useEffect(() => {
-             
+
         if (accountId) {
             getAddressForDescriptionField();
         }
-          
-            return () => {}
-      }, [accountId])
+
+        return () => { }
+    }, [accountId])
 
     useEffect(() => {
         if (deviceId !== "") {
-          getDateTime();
+            getDateTime();
         }
-      }, [deviceId]);
+    }, [deviceId]);
 
     const onHandleChange = (e: ChangeEvent<HTMLInputElement>) => {
 
@@ -396,7 +458,7 @@ export default function DataLists() {
                     <div className='col-span-1'>
                         <div className="flex my-3 place-items-center gap-6">
 
-                            <ButtonRevert onclick={() => { getFirstPage() }} />
+                            <ButtonRevert onclick={() => { getFirstPage() }} isAppear={isPreviousAppear} />
                             <ButtonPrevious onclick={() => { getPreviousData() }} isAppear={isPreviousAppear} />
 
                             <div className="flex gap-1">
@@ -407,7 +469,7 @@ export default function DataLists() {
                             </div>
 
                             <ButtonNext isAppear={isNextAppear} onclick={() => { getNextData() }} />
-                            <ButtonForword onclick={() => { getLastPage() }} />
+                            <ButtonForword onclick={() => { getLastPage() }} isAppear={isNextAppear} />
 
                         </div>
                     </div>
@@ -422,7 +484,7 @@ export default function DataLists() {
                                 max={allowedEnd}
                                 name="start"
                                 id="start"
-                                value={startDate}
+                                value={formatDateDefault(new Date())}
                                 onChange={handleStartDateChange}
                             />
 
@@ -436,8 +498,9 @@ export default function DataLists() {
                                 max={allowedEnd}
                                 name="end"
                                 id="end"
-                                value={endDate}
+                                value={formatDateDefault(new Date())}
                                 onChange={handleEndDateChange}
+
                             />
                         </div>
                         <div className='grid grid-cols-2'>

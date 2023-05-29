@@ -52,6 +52,9 @@ export const FireApiDataById = {
 
         return { dataById }
     },
+    fetchDataByDeviceId: async() => {
+        
+    }
 
 
 

@@ -9,7 +9,7 @@ type ButtonPreviousType = {
 export default function ButtonPrevious({isAppear, onclick}: ButtonPreviousType) {
     return (
         <button
-            className={`${!isAppear && "opacity-0 cursor-default"} `}
+            className={`${!isAppear && "opacity-20 cursor-default"} `}
             onClick={() => onclick()}>
             <Image
                 src={"../svg/tool/front.svg"}

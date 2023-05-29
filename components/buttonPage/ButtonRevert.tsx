@@ -2,12 +2,14 @@ import React from 'react'
 import Image from 'next/image';
 
 type ButtonRevertType = {
-    onclick(): void
+    onclick(): void,
+    isAppear: boolean
 }
 
-export default function ButtonRevert({ onclick }: ButtonRevertType) {
+export default function ButtonRevert({ onclick, isAppear }: ButtonRevertType) {
     return (
         <button
+            className={`${!isAppear && "opacity-20 cursor-default"} `}
             onClick={() => onclick()}>
             <Image
                 src={"../svg/tool/revert.svg"}

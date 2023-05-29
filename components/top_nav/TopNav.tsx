@@ -2,8 +2,8 @@
 
 import React from 'react'
 import { useAuthContext } from '@/context/AuthContext'
-import TopNavigationVerified from './TopNavigationVerified';
 import TopNavigation from './TopNavigation';
+import TopNavigationDashboard from './TopNavigationDashboard';
 
 export default function TopNav() {
 
@@ -12,9 +12,9 @@ export default function TopNav() {
     return (
         <div>
             {
-                user?.emailVerified
+                user
                 ? (
-                    <TopNavigationVerified />
+                    <TopNavigationDashboard />
                 )
                 : (
                     <TopNavigation />

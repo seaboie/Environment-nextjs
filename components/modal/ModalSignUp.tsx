@@ -93,8 +93,8 @@ export default function ModalSignUp({ isSignUp, isClose, isClick }: ModalSignUpP
                 })
 
         }
-
-        router.push("/profile/verified-email");
+        isClose()
+        router.push("/");
 
         clearField()
 

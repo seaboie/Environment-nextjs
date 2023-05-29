@@ -8,7 +8,7 @@ import ButtonForword from '../../../components/buttonPage/ButtonForword'
 import ButtonNext from '../../../components/buttonPage/ButtonNext'
 import ButtonPrevious from '../../../components/buttonPage/ButtonPrevious'
 import ButtonRevert from '../../../components/buttonPage/ButtonRevert'
-import { ModelInboxesDataCSVType, ModelInboxesType } from '../../models/modelTable/modelInboxes'
+import { ModelInboxesCSVType, ModelInboxesDataCSVType, ModelInboxesType } from '../../models/modelTable/modelInboxes'
 import { tableHeadInboxes } from '../../models/modelTableHead/modelTableHead'
 
 import { CSVLink } from 'react-csv';
@@ -67,12 +67,23 @@ export default function DataChildLists() {
   const getFirstPage = async () => {
     setPage(1);
     setIsNextAppear(true);
+
+    if (page === 1) {
+      setIsPreviousAppear(false);
+      return;
+  }
+  
     await getData()
   }
 
   const getLastPage = async () => {
     setPage(totalPage);
     setIsPreviousAppear(true)
+
+    if (totalPage === page) {
+      setIsNextAppear(false);
+      return;
+  }
 
     const { datas, error, firstDoc, lastDoc} = await FireApiDataChildList.fetchedLast<ModelInboxesType>(col, deviceIdField, deviceId, createdField, desc, limited, totalPage);
 
@@ -118,15 +129,50 @@ export default function DataChildLists() {
 
   const handleExportCSV = async () => {
 
-    const { datas, error } = await FireApiDataChildList.fetchedExportCSV<ModelInboxesType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc);
+    const { datas, error } = await FireApiDataChildList.fetchedExportCSV<ModelInboxesCSVType>(col, deviceId, order, firstTimestamp, lastTimestamp, order, desc);
 
+    const allData = datas?.map((d) => {
+      const updatedData: ModelInboxesDataCSVType = {
+        'L 5': 0,
+        L10: 0,
+        L50: 0,
+        L90: 0,
+        L95: 0,
+        LFmax: 0,
+        LFmin: 0,
+        LImax: 0,
+        LImin: 0,
+        LSmax: 0,
+        LSmin: 0,
+        'Leq,T': 0,
+        Peak: 0,
+        Responding: '',
+        SD: 0,
+        SEL: 0,
+        Weighting: ''
+      };
 
-    const allData = datas?.map((d) => ({ 'date': new Date(d.createdAt.toDate()).toLocaleDateString('th-TH', { hour: 'numeric', minute: 'numeric', second: 'numeric' }), ...d.data })).reverse()
+    for (const key in d.data) {
+      updatedData[key] = !isNaN(d.data[key]) ? parseFloat(d.data[key]) : d.data[key];
 
+    }
+
+    console.log('page.tsx : บรรทัดที่ #138' + ' ' + JSON.stringify(updatedData));
+
+      return {
+        date: new Date(d.createdAt.toDate()).toLocaleDateString('th-Th', {
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric'
+        }),...updatedData};
+    });
+  
     if (allData) {
       setDataCSV(allData);
     }
 
+    // alert(JSON.stringify(dataCSV))
+    
   }
 
   useEffect(() => {
@@ -201,7 +247,7 @@ export default function DataChildLists() {
           <div className='col-span-1'>
             <div className="flex my-3 place-items-center gap-6">
 
-              <ButtonRevert onclick={() => { getFirstPage() }} />
+              <ButtonRevert onclick={() => { getFirstPage() }} isAppear={isPreviousAppear} />
               <ButtonPrevious onclick={() => { getPreviousData() }} isAppear={isPreviousAppear} />
 
               <div className="flex gap-1">
@@ -212,7 +258,7 @@ export default function DataChildLists() {
               </div>
 
               <ButtonNext isAppear={isNextAppear} onclick={() => { getNextData() }} />
-              <ButtonForword onclick={() => { getLastPage() }} />
+              <ButtonForword onclick={() => { getLastPage() }} isAppear={isNextAppear}/>
 
             </div>
           </div>
