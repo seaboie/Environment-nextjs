@@ -198,7 +198,9 @@ export default function DataLists() {
     // 
 
 
-
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 1;
+    const pageCount = Math.ceil(dataResults?.length ?? 1 / itemsPerPage)
     // 2.
     const getDataFromDeviceId = async () => {
         const collectionDevicesRef = collection(db, "devices");
@@ -230,6 +232,53 @@ export default function DataLists() {
         setDataResults(documents);
 
     }
+
+    const goToFirstPage = () => {
+        setCurrentPage(1);
+
+        setIsNextAppear(true);
+
+        if (currentPage === 1) {
+            setIsPreviousAppear(false);
+            return;
+        }
+    };
+
+    const goToLastPage = () => {
+        setCurrentPage(pageCount);
+
+        setIsPreviousAppear(true)
+
+        if (pageCount === currentPage) {
+            setIsNextAppear(false);
+            return;
+        }
+    };
+
+    const getPrevious = () => {
+
+        setIsNextAppear(true);
+
+        if (currentPage === 1) {
+            setIsPreviousAppear(false);
+            return;
+        }
+
+        setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
+    }
+
+    const getNext = () => {
+       
+        setIsPreviousAppear(true)
+
+        if (currentPage === pageCount) {
+            setIsNextAppear(false);
+            return;
+        }
+        setCurrentPage((prevPage) => Math.min(prevPage + 1, pageCount))
+    }
+    
+    
 
 
 
@@ -417,7 +466,7 @@ export default function DataLists() {
                             <tbody>
 
                                 {
-                                    dataResults?.map((device) => (
+                                    dataResults && dataResults.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((device) => (
                                         // <tr key={device.instrument.serialNumber}>
                                         <tr key={device.id}>
 
@@ -458,18 +507,18 @@ export default function DataLists() {
                     <div className='col-span-1'>
                         <div className="flex my-3 place-items-center gap-6">
 
-                            <ButtonRevert onclick={() => { getFirstPage() }} isAppear={isPreviousAppear} />
-                            <ButtonPrevious onclick={() => { getPreviousData() }} isAppear={isPreviousAppear} />
+                            <ButtonRevert onclick={() => { goToFirstPage() }} isAppear={isPreviousAppear} />
+                            <ButtonPrevious onclick={() => getPrevious()} isAppear={isPreviousAppear} />
 
                             <div className="flex gap-1">
                                 <div>หน้าที่</div>
-                                <div>{page}</div>
+                                <div>{currentPage}</div>
                                 <div>/</div>
-                                <div>{totalPage}</div>
+                                <div>{pageCount}</div>
                             </div>
 
-                            <ButtonNext isAppear={isNextAppear} onclick={() => { getNextData() }} />
-                            <ButtonForword onclick={() => { getLastPage() }} isAppear={isNextAppear} />
+                            <ButtonNext isAppear={isNextAppear} onclick={() => getNext()} />
+                            <ButtonForword onclick={() => { goToLastPage() }} isAppear={isNextAppear} />
 
                         </div>
                     </div>
